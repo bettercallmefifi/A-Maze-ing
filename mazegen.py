@@ -16,6 +16,14 @@ class MazeGenerator:
         """
         Initialize the maze generator
         """
+        self.pattern_42: list[list[int]] = [
+            [0, 1, 1, 0, 1, 1, 0, 0, 0, 0, 0],
+            [0, 1, 1, 0, 1, 1, 1, 1, 1, 1, 0],
+            [0, 1, 1, 0, 1, 1, 1, 1, 1, 1, 0],
+            [0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0],
+            [1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1],
+            [1, 1, 1, 0, 1, 1, 0, 0, 0, 0, 0],
+        ]
         self.width = width
         self.height = height
         self.entry = entry
@@ -27,6 +35,32 @@ class MazeGenerator:
             random.seed(self.seed)
         self.maze = [[15 for _ in range(width)] for _ in range(height)]
         self.visited = [[False for _ in range(width)] for _ in range(height)]
+# ferdaous's part
+
+    def _apply_42_pattern(self) -> None:
+        """Injects the 42 pattern by marking its cells as already visited."""
+        pattern_h = len(self.pattern_42)
+        pattern_w = len(self.pattern_42[0])
+
+        '''Ensure maze is large enough to hold the pattern PLUS'''
+        ''' at least 1 cell of padding'''
+        if self.width < pattern_w + 2 or self.height < pattern_h + 2:
+            print("Error: Maze size is too small to display the '42' pattern.")
+            return
+
+        # Center the pattern in the maze
+        start_x = (self.width - pattern_w) // 2
+        start_y = (self.height - pattern_h) // 2
+
+        for py in range(pattern_h):
+            for px in range(pattern_w):
+                # In your pattern array, '0' represents the solid walls
+                if self.pattern_42[py][px] == 0:
+                    maze_x = start_x + px
+                    maze_y = start_y + py
+                    # Pre-visit the cell so generators route around it
+                    # This leaves its walls at 15 (fully closed)
+                    self.visited[maze_y][maze_x] = True
 
     def _get_neighbors(self, x: int, y: int) -> List[Tuple[int, int]]:
         """Get coordinates of all neighbors (not walls!)"""
@@ -108,12 +142,50 @@ class MazeGenerator:
             if not self.visited[ny][nx]:
                 self._remove_wall_between(x, y, nx, ny)
                 self._dfs_recursive(nx, ny)
+# ferdaous's part
+
+    def _generate_bfs(self) -> None:
+        """Generate the maze using randomized Breadth-First Search."""
+        # 1. Find a valid starting cell (avoiding the 42 pattern if applied)
+        while True:
+            x_start = random.randint(0, self.width - 1)
+            y_start = random.randint(0, self.height - 1)
+            if not self.visited[y_start][x_start]:
+                break
+
+        # 2. Initialize the queue with the starting cell
+        queue = [(x_start, y_start)]
+        self.visited[y_start][x_start] = True
+
+        # 3. Process the queue
+        while queue:
+            # Pop from the front of the list (FIFO behavior)
+            cx, cy = queue.pop(0)
+
+            # Get all neighbors and shuffle them to ensure the maze is random
+            neighbors = self._get_neighbors(cx, cy)
+            random.shuffle(neighbors)
+
+            for nx, ny in neighbors:
+                # If the neighbor hasn't been visited (and isn't part of the 42!)
+                if not self.visited[ny][nx]:
+                    # Break the wall
+                    self._remove_wall_between(cx, cy, nx, ny)
+                    # Mark as visited
+                    self.visited[ny][nx] = True
+                    # Add to the queue to explore its neighbors later
+                    queue.append((nx, ny))
 
     def generate_maze(self) -> None:
+        # Reserve the 42 pattern on the grid first
+        self._apply_42_pattern()
+
         if self.algorithm == "prim":
             self._generate_prim()
         elif self.algorithm == "dfs":
             self._generate_dfs()
+        elif self.algorithm == "bfs":
+            self._generate_bfs()
         else:
             raise ValueError("Unknown algorithm")
 
