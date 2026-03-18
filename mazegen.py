@@ -211,7 +211,7 @@ class MazeGenerator:
     def get_solution_path(self) -> str:
         """Return shortest path from entry to exit as string of N, E, S, W"""
         # TODO: Implement BFS pathfinding
-        return "TODO"
+        pass
 
     def display_maze(self, path: bool = False) -> None:
         """Display the maze in terminal using ASCII"""
@@ -272,6 +272,4 @@ class MazeGenerator:
             # Write exit coordinates
             f.write(f"{self.exit[0]},{self.exit[1]}\n")
             
-            # Write solution path
-            solution = self.get_solution_path()
-            f.write(solution + '\n')
+            
