@@ -38,6 +38,9 @@ class MazeGenerator:
         
         self.maze = [[15 for _ in range(width)] for _ in range(height)]
         self.visited = [[False for _ in range(width)] for _ in range(height)]
+        
+        # add store the coordinates of the 42 shape for visualization
+        self.pattern_coords = set()
 
     def _apply_42_pattern(self) -> None:
         """Injects the 42 pattern by marking its cells as already visited"""
@@ -53,15 +56,21 @@ class MazeGenerator:
         start_x = (self.width - pattern_w) // 2
         start_y = (self.height - pattern_h) // 2
 
+        self.pattern_coords.clear()  # Clear it in case of regeneration
+
         for py in range(pattern_h):
             for px in range(pattern_w):
                 # In the pattern array, '0' represents the solid walls
                 if self.pattern_42[py][px] == 0:
                     maze_x = start_x + px
                     maze_y = start_y + py
+                    
                     # Pre-visit the cell so generators route around it
                     # This leaves its walls at 15 (fully closed)
                     self.visited[maze_y][maze_x] = True
+                    
+                    # Add this line to remember where the 42 is for display:
+                    self.pattern_coords.add((maze_x, maze_y))
 
     def _get_neighbors(self, x: int, y: int) -> List[Tuple[int, int]]:
         """Get coordinates of all neighbors"""
@@ -88,7 +97,6 @@ class MazeGenerator:
 
     def _remove_wall_between(self, x1: int, y1: int, x2: int, y2: int) -> None:
         """Remove wall between two adjacent cells"""
-        
         if y2 < y1:  # North
             self.maze[y1][x1] &= ~(1 << 0)
             self.maze[y2][x2] &= ~(1 << 2)
@@ -244,9 +252,35 @@ class MazeGenerator:
                 
         return "No path found"
 
+    def _get_path_coordinates(self) -> set:
+        """Helper to convert the N/E/S/W path string into (x, y) coordinates."""
+        path_str = self.get_shortest_path()
+        if path_str == "No path found":
+            return set()
+        
+        coords = set()
+        cx, cy = self.entry
+        
+        for move in path_str:
+            if move == 'N':
+                cy -= 1
+            elif move == 'S':
+                cy += 1
+            elif move == 'E':
+                cx += 1
+            elif move == 'W':
+                cx -= 1
+            # Add the coordinate to the set (except exit, which we already draw as 'X')
+            if (cx, cy) != self.exit:
+                coords.add((cx, cy))
+                
+        return coords
 
-    def display_maze(self, path: bool = False) -> None:
+    def display_maze(self, show_path: bool = False) -> None:
         """Display the maze in terminal using ASCII"""
+        
+        # Get path coordinates if requested
+        path_coords = self._get_path_coordinates() if show_path else set()
         
         for y in range(self.height):
             # Print top walls
@@ -268,10 +302,15 @@ class MazeGenerator:
                 else:
                     line += " "
                 
+                # Determine what to draw inside the cell
                 if (x, y) == self.entry:
                     line += " E "
                 elif (x, y) == self.exit:
                     line += " X "
+                elif show_path and (x, y) in path_coords:
+                    line += " * "  # Shortest path!
+                elif (x, y) in self.pattern_coords:
+                    line += " # "  # 42 pattern shape!
                 else:
                     line += "   "
             
@@ -307,6 +346,3 @@ class MazeGenerator:
             # SUBJECT REQUIREMENT: Write the shortest path solution
             path = self.get_shortest_path()
             f.write(f"{path}\n")
-
-            
-            
