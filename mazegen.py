@@ -208,10 +208,42 @@ class MazeGenerator:
         """Return the maze structure as a 2D grid with hex-encoded walls"""
         return self.maze
 
-    def get_solution_path(self) -> str:
-        """Return shortest path from entry to exit as string of N, E, S, W"""
-        # TODO: Implement BFS pathfinding
-        pass
+    def get_shortest_path(self) -> str:
+        """Finds the shortest path from entry to exit using BFS."""
+        from collections import deque
+        
+        # Queue stores tuples of (x, y, path_string)
+        queue = deque([(self.entry[0], self.entry[1], "")])
+        visited = set()
+        visited.add(self.entry)
+        
+        while queue:
+            x, y, path = queue.popleft()
+            
+            if (x, y) == self.exit:
+                return path
+            
+            cell_walls = self.maze[y][x]
+            
+            # Check North (bit 0 is 0)
+            if not (cell_walls & (1 << 0)) and y > 0 and (x, y - 1) not in visited:
+                visited.add((x, y - 1))
+                queue.append((x, y - 1, path + "N"))
+            # Check East (bit 1 is 0)
+            if not (cell_walls & (1 << 1)) and x < self.width - 1 and (x + 1, y) not in visited:
+                visited.add((x + 1, y))
+                queue.append((x + 1, y, path + "E"))
+            # Check South (bit 2 is 0)
+            if not (cell_walls & (1 << 2)) and y < self.height - 1 and (x, y + 1) not in visited:
+                visited.add((x, y + 1))
+                queue.append((x, y + 1, path + "S"))
+            # Check West (bit 3 is 0)
+            if not (cell_walls & (1 << 3)) and x > 0 and (x - 1, y) not in visited:
+                visited.add((x - 1, y))
+                queue.append((x - 1, y, path + "W"))
+                
+        return "No path found"
+
 
     def display_maze(self, path: bool = False) -> None:
         """Display the maze in terminal using ASCII"""
@@ -271,5 +303,10 @@ class MazeGenerator:
             
             # Write exit coordinates
             f.write(f"{self.exit[0]},{self.exit[1]}\n")
+            
+            # SUBJECT REQUIREMENT: Write the shortest path solution
+            path = self.get_shortest_path()
+            f.write(f"{path}\n")
+
             
             

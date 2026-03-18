@@ -157,7 +157,7 @@ if __name__ == "__main__":
     config_file = sys.argv[1]
     
     try:
-        config = MazeModel.parse_from_file(config_file)  # ← Changed this
+        config = MazeModel.parse_from_file(config_file)
     except (ValueError, OSError) as e:
         print(f"Error: {e}")
         sys.exit(1)
@@ -167,7 +167,7 @@ if __name__ == "__main__":
     
     # Create maze generator
     maze_gen = MazeGenerator(
-        width=config["width"],      # ← Note: lowercase keys
+        width=config["width"],
         height=config["height"],
         entry=config["entry"],
         exit=config["exit"],
@@ -188,3 +188,47 @@ if __name__ == "__main__":
     output_file = config["output_file"]
     maze_gen.write_output_file(output_file)
     print(f"\nMaze saved to {output_file}")
+    
+    # Interactive Terminal UI
+    path_visible = False
+    
+    ''''while True:
+        print("\n=== A-Maze-ing ===")
+        print("1. Re-generate a new maze")
+        print("2. Show/Hide path from entry to exit")
+        print("3. Quit")
+        choice = input("Choice? (1-3): ")
+        
+        if choice == '1':
+            print("Regenerating...")
+            maze_gen = MazeGenerator(
+                width=config["width"],
+                height=config["height"],
+                entry=config["entry"],
+                exit=config["exit"],
+                perfect=config["perfect"],
+                algorithm=config["algorithm"],
+                seed=None # Randomize seed on regeneration
+            )
+            maze_gen.generate_maze()
+            maze_gen.display_maze()
+            
+            # Optionally rewrite the file with the new maze
+            maze_gen.write_output_file(output_file)
+            print(f"New maze saved to {output_file}")
+            
+        elif choice == '2':
+            path_visible = not path_visible
+            if path_visible:
+                path = maze_gen.get_shortest_path()
+                print(f"Path: {path}")
+                # You can extend your display_maze() function to visually map this path
+            else:
+                print("Path hidden.")
+                maze_gen.display_maze()
+                
+        elif choice == '3':
+            print("Exiting...")
+            break
+        else:
+            print("Invalid choice. Please try again.")'''
