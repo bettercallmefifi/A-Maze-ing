@@ -163,7 +163,7 @@ if __name__ == "__main__":
         sys.exit(1)
     
     # Import MazeGenerator
-    from mazegen import MazeGenerator
+    from mazegen.mazegen import MazeGenerator
     
     # Create maze generator
     maze_gen = MazeGenerator(
