@@ -149,10 +149,42 @@ class MazeModel:
             "output_file": output_file,
         }
 
-
 if __name__ == "__main__":
     if len(sys.argv) != 2:
         print("Usage: python3 a_maze_ing.py config.txt")
         sys.exit(1)
-
+    
     config_file = sys.argv[1]
+    
+    try:
+        config = MazeModel.parse_from_file(config_file)  # ← Changed this
+    except (ValueError, OSError) as e:
+        print(f"Error: {e}")
+        sys.exit(1)
+    
+    # Import MazeGenerator
+    from mazegen import MazeGenerator
+    
+    # Create maze generator
+    maze_gen = MazeGenerator(
+        width=config["width"],      # ← Note: lowercase keys
+        height=config["height"],
+        entry=config["entry"],
+        exit=config["exit"],
+        perfect=config["perfect"],
+        algorithm=config["algorithm"],
+        seed=config["seed"],
+    )
+    
+    # Generate maze
+    print("Generating maze...")
+    maze_gen.generate_maze()
+    
+    # Display maze
+    print("\nMaze:")
+    maze_gen.display_maze()
+    
+    # Write output file
+    output_file = config["output_file"]
+    maze_gen.write_output_file(output_file)
+    print(f"\nMaze saved to {output_file}")
