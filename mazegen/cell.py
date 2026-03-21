@@ -1,0 +1,60 @@
+from typing import Dict
+
+
+class Cell:
+    def __init__(self, x: int, y: int) -> None:
+        self.x = x
+        self.y = y
+        self.is_42 = False
+        self.in_path = False
+        self.visited = False
+        self.walls: Dict[str, bool] = {
+            "N": True,
+            "E": True,
+            "S": True,
+            "W": True,
+        }
+
+    @property
+    def north(self) -> bool:
+        return self.walls["N"]
+
+    @north.setter
+    def north(self, value: bool) -> None:
+        self.walls["N"] = value
+
+    @property
+    def east(self) -> bool:
+        return self.walls["E"]
+
+    @east.setter
+    def east(self, value: bool) -> None:
+        self.walls["E"] = value
+
+    @property
+    def south(self) -> bool:
+        return self.walls["S"]
+
+    @south.setter
+    def south(self, value: bool) -> None:
+        self.walls["S"] = value
+
+    @property
+    def west(self) -> bool:
+        return self.walls["W"]
+
+    @west.setter
+    def west(self, value: bool) -> None:
+        self.walls["W"] = value
+
+    def open_wall(self, direction: str) -> None:
+        if direction in ["NORTH", "N"]:
+            self.walls["N"] = False
+        elif direction in ["EAST", "E"]:
+            self.walls["E"] = False
+        elif direction in ["SOUTH", "S"]:
+            self.walls["S"] = False
+        elif direction in ["WEST", "W"]:
+            self.walls["W"] = False
+        else:
+            raise ValueError(f"Invalid direction {direction}")
