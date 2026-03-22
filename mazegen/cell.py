@@ -58,3 +58,18 @@ class Cell:
             self.walls["W"] = False
         else:
             raise ValueError(f"Invalid direction {direction}")
+
+    def close_wall(self, direction: str) -> None:
+        if direction in ["NORTH", "N"]:
+            self.walls["N"] = True
+        elif direction in ["EAST", "E"]:
+            self.walls["E"] = True
+        elif direction in ["SOUTH", "S"]:
+            self.walls["S"] = True
+        elif direction in ["WEST", "W"]:
+            self.walls["W"] = True
+        else:
+            raise ValueError(f"Invalid direction {direction}")
+
+    def __repr__(self) -> str:
+        return f"Cell({self.x},{self.y},42={self.is_42})"

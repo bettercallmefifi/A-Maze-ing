@@ -22,13 +22,17 @@ class Generator:
         else:
             random.seed(time.time_ns())
 
-        self.maze = Maze(width, height, entry, exit,output_file)
+        self.maze = Maze(width, height, entry, exit, output_file)
         self.perfect = perfect
 
     def generate(self) -> None:
         start_point = self.maze.get_cell(*self.maze.entry)
+
         if start_point is None:
             raise ValueError("invalid coordinates for start point")
+
+        if start_point.is_42:
+            raise ValueError("Entry cannot be inside 42 pattern")
 
         self._dfs(start_point)
 
@@ -39,7 +43,7 @@ class Generator:
         random.shuffle(neighbors)
 
         for neighbor in neighbors:
-            if not neighbor.visited:
+            if not neighbor.visited and not neighbor.is_42:  # 👈 fix مهم
                 self.maze.open_wall_between(cell, neighbor)
                 self._dfs(neighbor)
 

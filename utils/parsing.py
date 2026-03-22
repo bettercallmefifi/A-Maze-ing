@@ -65,7 +65,7 @@ class ConfigParser:
                     parsed_data[key] = self.parse_cordinate(key,value)
                 else:
                     parsed_data[key] = value
-                print(parsed_data)
+                # print(parsed_data)
             for required in self.REQUIRED_KEYS:
                 if required not in parsed_data:
                     raise ValueError(f"Missing key {key}")

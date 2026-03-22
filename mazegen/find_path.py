@@ -1,71 +1,80 @@
 from typing import Dict, List, Optional, Tuple
+from collections import deque
 from .maze import Maze
 
 Coord = Tuple[int, int]
 
 
 def _open_neighbors(maze: Maze, coord: Coord) -> List[Coord]:
-    """Return reachable neighbors without walls or 42 blocks."""
     x, y = coord
     cell = maze.get_cell(x, y)
-    if cell is None:
+
+    if not cell or cell.is_42:
         return []
-    if cell.is_42:
-        return []
 
-    neighbors: List[Coord] = []
-    if not cell.north:
-        neighbors.append((x, y - 1))
-    if not cell.south:
-        neighbors.append((x, y + 1))
-    if not cell.west:
-        neighbors.append((x - 1, y))
-    if not cell.east:
-        neighbors.append((x + 1, y))
+    directions = [
+        (0, -1, cell.north),  # N
+        (0, 1, cell.south),   # S
+        (-1, 0, cell.west),   # W
+        (1, 0, cell.east),    # E
+    ]
 
-    valid_neighbors: List[Coord] = []
-    for nx, ny in neighbors:
-        neighbor_cell = maze.get_cell(nx, ny)
-        if neighbor_cell is not None and not neighbor_cell.is_42:
-            valid_neighbors.append((nx, ny))
+    result: List[Coord] = []
 
-    return valid_neighbors
+    for dx, dy, wall in directions:
+        if not wall:
+            nx, ny = x + dx, y + dy
+            neighbor = maze.get_cell(nx, ny)
+
+            if neighbor and not neighbor.is_42:
+                result.append((nx, ny))
+
+    return result
 
 
 def bfs_shortest_path(maze: Maze) -> List[Coord]:
-    """Compute the shortest path using BFS on the maze."""
     start = maze.entry
     goal = maze.exit
 
-    queue: List[Coord] = [start]
-    came_from: Dict[Coord, Optional[Coord]] = {start: None}  # child -> parent
+    start_cell = maze.get_cell(*start)
+    goal_cell = maze.get_cell(*goal)
+
+    if not start_cell or not goal_cell:
+        return []
+
+    if start_cell.is_42 or goal_cell.is_42:
+        return []
+
+    queue = deque([start])
+    came_from: Dict[Coord, Optional[Coord]] = {start: None}
 
     while queue:
-        current_coord = queue.pop(0)
-        if current_coord == goal:
+        current = queue.popleft()
+
+        if current == goal:
             break
 
-        for neighbor in _open_neighbors(maze, current_coord):
+        for neighbor in _open_neighbors(maze, current):
             if neighbor not in came_from:
-                came_from[neighbor] = current_coord
+                came_from[neighbor] = current
                 queue.append(neighbor)
 
     if goal not in came_from:
         return []
 
     path: List[Coord] = []
-    current_node: Optional[Coord] = goal
-    while current_node is not None:
-        path.append(current_node)
-        current_node = came_from[current_node]
-    path.reverse()
+    node: Optional[Coord] = goal
 
+    while node is not None:
+        path.append(node)
+        node = came_from[node]
+
+    path.reverse()
     return path
 
 
 def mark_path(maze: Maze, path: List[Coord]) -> None:
-    """Mark cells in a path so the renderer can highlight them."""
     for x, y in path:
         cell = maze.get_cell(x, y)
-        if cell is not None:
+        if cell:
             cell.in_path = True
