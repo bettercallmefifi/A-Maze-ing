@@ -1,4 +1,4 @@
-from typing import Deque, Set, Tuple
+from .maze import Maze
 
 PATTERN_42 = [
     [1, 0, 0, 0, 1, 1, 1],
@@ -9,9 +9,11 @@ PATTERN_42 = [
 ]
 
 
-def mark_42_cells(maze):
-    """Mark 42 cells BEFORE generation so DFS avoids them."""
-    
+def mark_42_cells(maze: Maze) -> bool:
+    """Mark 42 pattern cells and return True when applied."""
+    if not can_apply_42_pattern(maze):
+        return False
+
     pattern_h = len(PATTERN_42)
     pattern_w = len(PATTERN_42[0])
 
@@ -27,13 +29,14 @@ def mark_42_cells(maze):
                 if cell is not None:
                     cell.is_42 = True
                     cell.visited = True
+    return True
 
-def can_apply_42_pattern(maze) -> bool:
+def can_apply_42_pattern(maze: Maze) -> bool:
     """Check if maze is big enough."""
     return maze.width >= len(PATTERN_42[0]) and maze.height >= len(PATTERN_42)
 
 
-def apply_42_pattern(maze):
+def apply_42_pattern(maze: Maze) -> None:
     """Apply the 42 pattern by closing walls around marked cells."""
     if not can_apply_42_pattern(maze):
         return

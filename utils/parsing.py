@@ -1,7 +1,9 @@
-from typing import List,Any,Tuple
+from typing import Any, Dict, Tuple
 
 
 class ConfigParser:
+    """Parse and validate the maze configuration file."""
+
     REQUIRED_KEYS = {
         "WIDTH",
         "HEIGHT",
@@ -13,10 +15,12 @@ class ConfigParser:
     OPTIONAL_KEY = {"SEED"}
 
 
-    def __init__(self,config_file:str)->None:
+    def __init__(self, config_file: str) -> None:
+        """Store the configuration file path."""
         self.config_file = config_file
     
-    def validate_int(self,key:str,value:str)->int:
+    def validate_int(self, key: str, value: str) -> int:
+        """Validate that a string is a non-negative integer."""
         try:
             value = int(value)
         except ValueError:
@@ -25,7 +29,8 @@ class ConfigParser:
             raise ValueError(f"Invalid value for {key} (use positive value)")
         return value
     
-    def parse_cordinate(self,key:str,value:Tuple[str,str])->Tuple[int,int]:
+    def parse_cordinate(self, key: str, value: str) -> Tuple[int, int]:
+        """Parse and validate coordinate values formatted as 'x,y'."""
         cordinates = value.split(",")
         if len(cordinates) != 2:
             raise ValueError("Invalid value for {key}")
@@ -39,8 +44,9 @@ class ConfigParser:
         return x,y
     
     
-    def parse(self)->dict[str,Any]:
-        parsed_data = {}
+    def parse(self) -> Dict[str, Any]:
+        """Read config file and return validated key/value data."""
+        parsed_data: Dict[str, Any] = {}
         all_keys = self.REQUIRED_KEYS | self.OPTIONAL_KEY
         with open(self.config_file,"r") as file:
             for index ,line in enumerate(file) :
@@ -68,7 +74,7 @@ class ConfigParser:
                 # print(parsed_data)
             for required in self.REQUIRED_KEYS:
                 if required not in parsed_data:
-                    raise ValueError(f"Missing key {key}")
+                    raise ValueError(f"Missing key {required}")
                     
             width = parsed_data["WIDTH"]
             height = parsed_data["HEIGHT"]

@@ -1,32 +1,19 @@
-.PHONY: run bonus clean lint install build clean-build
-
-run:
-	# Run the DFS version with config.txt
-	python -m a_maze_ing config.txt
-
-
-clean:
-	# Remove Python bytecode caches
-	rm -rf __pycache__ */__pycache__ *.pyc .mypy_cache
-
-.ONESHELL:
+.PHONY: install run debug clean lint
 
 install:
-	# Create venv and install dependencies + editable package
-	python -m venv myenv
-	myenv/bin/pip install --upgrade pip
-	myenv/bin/pip install -r requirements.txt
-	myenv/bin/pip install -e .
+	python3 -m pip install --upgrade pip
+	python3 -m pip install -r requirements.txt
+	python3 -m pip install -e .
 
-build:
-	# Build wheel and sdist using the venv Python
-	myenv/bin/python -m build
+run:
+	python3 a_maze_ing.py config.txt
+
+debug:
+	python3 -m pdb a_maze_ing.py config.txt
+
+clean:
+	python3 -c "import pathlib, shutil; [shutil.rmtree(p, ignore_errors=True) for p in pathlib.Path('.').rglob('__pycache__')]; [p.unlink(missing_ok=True) for p in pathlib.Path('.').rglob('*.pyc')]; shutil.rmtree(pathlib.Path('.mypy_cache'), ignore_errors=True)"
 
 lint:
-	# Run flake8 and mypy checks
-	flake8
-	mypy .
-
-clean-build:
-	# Remove build artifacts
-	rm -rf dist build *.egg-info
+	flake8 .
+	mypy . --warn-return-any --warn-unused-ignores --ignore-missing-imports --disallow-untyped-defs --check-untyped-defs

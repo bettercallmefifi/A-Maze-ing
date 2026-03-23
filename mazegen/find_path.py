@@ -6,6 +6,7 @@ Coord = Tuple[int, int]
 
 
 def _open_neighbors(maze: Maze, coord: Coord) -> List[Coord]:
+    """Return reachable neighboring coordinates from a given coordinate."""
     x, y = coord
     cell = maze.get_cell(x, y)
 
@@ -33,6 +34,7 @@ def _open_neighbors(maze: Maze, coord: Coord) -> List[Coord]:
 
 
 def bfs_shortest_path(maze: Maze) -> List[Coord]:
+    """Compute shortest path from entry to exit with BFS."""
     start = maze.entry
     goal = maze.exit
 
@@ -74,6 +76,7 @@ def bfs_shortest_path(maze: Maze) -> List[Coord]:
 
 
 def mark_path(maze: Maze, path: List[Coord]) -> None:
+    """Mark the cells included in a path for rendering."""
     for x, y in path:
         cell = maze.get_cell(x, y)
         if cell:

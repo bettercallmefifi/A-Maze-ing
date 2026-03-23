@@ -2,7 +2,10 @@ from typing import Dict
 
 
 class Cell:
+    """Store maze cell coordinates, wall states, and display flags."""
+
     def __init__(self, x: int, y: int) -> None:
+        """Initialize a cell with all walls closed."""
         self.x = x
         self.y = y
         self.is_42 = False
@@ -48,6 +51,7 @@ class Cell:
         self.walls["W"] = value
 
     def open_wall(self, direction: str) -> None:
+        """Open one wall of the cell using N/E/S/W direction aliases."""
         if direction in ["NORTH", "N"]:
             self.walls["N"] = False
         elif direction in ["EAST", "E"]:
@@ -60,6 +64,7 @@ class Cell:
             raise ValueError(f"Invalid direction {direction}")
 
     def close_wall(self, direction: str) -> None:
+        """Close one wall of the cell using N/E/S/W direction aliases."""
         if direction in ["NORTH", "N"]:
             self.walls["N"] = True
         elif direction in ["EAST", "E"]:

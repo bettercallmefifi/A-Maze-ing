@@ -1,13 +1,18 @@
 from mazegen.maze import Maze
 from mazegen.find_path import bfs_shortest_path
-from typing import List
+from typing import List, Tuple
+
+Coord = Tuple[int, int]
 
 
 class ExportMaze:
-    def __init__(self, maze: Maze):
+    """Serialize maze data to the required hexadecimal output format."""
+
+    def __init__(self, maze: Maze) -> None:
+        """Initialize exporter with a generated maze."""
         self.maze = maze
 
-    def path_to_directions(self, path) -> str:
+    def path_to_directions(self, path: List[Coord]) -> str:
         """Convert a path into N/E/S/W direction letters."""
         directions: List[str] = []
 
@@ -24,6 +29,7 @@ class ExportMaze:
         return "".join(directions)
 
     def export(self) -> None:
+        """Write maze hex grid, entry, exit, and shortest-path directions."""
         path = bfs_shortest_path(self.maze)
 
         if not path or len(path) < 2:
@@ -55,4 +61,4 @@ class ExportMaze:
             file.write("\n")
             file.write(f"{self.maze.entry[0]},{self.maze.entry[1]}\n")
             file.write(f"{self.maze.exit[0]},{self.maze.exit[1]}\n")
-            file.write(directions)
+            file.write(f"{directions}\n")
