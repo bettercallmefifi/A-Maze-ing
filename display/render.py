@@ -12,7 +12,9 @@ class MazeRenderer:
         self,
         maze: Maze,
         openings: List[Tuple[Tuple[int, int], Tuple[int, int]]],
-        regenerate_callback: Callable[[], Tuple[Maze, List[Tuple[Tuple[int, int], Tuple[int, int]]]]],
+        regenerate_callback: Callable[
+            [], Tuple[Maze, List[Tuple[Tuple[int, int], Tuple[int, int]]]]
+        ],
     ) -> None:
         self.maze = maze
         self.openings = openings
@@ -42,14 +44,16 @@ class MazeRenderer:
         self.animation_running = False
         self.use_animation_state = False
 
-        self.cell_size = max(18, min(36, 900 // max(self.maze.width, self.maze.height)))
+        self.cell_size = max(
+            18, min(36, 900 // max(self.maze.width, self.maze.height)))
         self.margin = 24
         self.info_height = 70
 
         pygame.init()
         pygame.display.set_caption("A-Maze-ing Viewer (pygame)")
         width, height = self._maze_pixel_size()
-        self.screen = pygame.display.set_mode((width, height + self.info_height))
+        self.screen = pygame.display.set_mode(
+            (width, height + self.info_height))
         self.font = pygame.font.SysFont("monospace", 18)
 
         self._start_animation(self.openings)
@@ -69,7 +73,9 @@ class MazeRenderer:
         ox, oy = self._cell_origin(x, y)
         return (ox + self.cell_size // 2, oy + self.cell_size // 2)
 
-    def _start_animation(self, openings: List[Tuple[Tuple[int, int], Tuple[int, int]]]) -> None:
+    def _start_animation(
+        self, openings: List[Tuple[Tuple[int, int], Tuple[int, int]]]
+    ) -> None:
         self.openings = openings
         self.animation_open_walls = set()
         self.animation_index = 0
@@ -94,7 +100,8 @@ class MazeRenderer:
         if not self.animation_running:
             return
 
-        end_index = min(self.animation_index + self.steps_per_frame, len(self.openings))
+        end_index = min(self.animation_index +
+                        self.steps_per_frame, len(self.openings))
         for i in range(self.animation_index, end_index):
             source, target = self.openings[i]
             source_dir, target_dir = self._direction_between(source, target)
@@ -145,24 +152,34 @@ class MazeRenderer:
                     pygame.draw.rect(
                         self.screen,
                         self.pattern_color,
-                        pygame.Rect(ox + 5, oy + 5, self.cell_size - 10, self.cell_size - 10),
+                        pygame.Rect(ox + 5, oy + 5, self.cell_size -
+                                    10, self.cell_size - 10),
                     )
 
                 if self._is_wall_closed(cell, x, y, "N"):
-                    pygame.draw.line(self.screen, self.wall_color, (ox, oy), (x2, oy), 2)
+                    pygame.draw.line(
+                        self.screen, self.wall_color, (ox, oy), (x2, oy), 2)
                 if self._is_wall_closed(cell, x, y, "W"):
-                    pygame.draw.line(self.screen, self.wall_color, (ox, oy), (ox, y2), 2)
-                if x == self.maze.width - 1 and self._is_wall_closed(cell, x, y, "E"):
-                    pygame.draw.line(self.screen, self.wall_color, (x2, oy), (x2, y2), 2)
-                if y == self.maze.height - 1 and self._is_wall_closed(cell, x, y, "S"):
-                    pygame.draw.line(self.screen, self.wall_color, (ox, y2), (x2, y2), 2)
+                    pygame.draw.line(
+                        self.screen, self.wall_color, (ox, oy), (ox, y2), 2)
+                if x == self.maze.width - 1 and self._is_wall_closed(
+                    cell, x, y, "E"
+                ):
+                    pygame.draw.line(
+                        self.screen, self.wall_color, (x2, oy), (x2, y2), 2)
+                if y == self.maze.height - 1 and self._is_wall_closed(
+                    cell, x, y, "S"
+                ):
+                    pygame.draw.line(
+                        self.screen, self.wall_color, (ox, y2), (x2, y2), 2)
 
         entry_x, entry_y = self.maze.entry
         ox, oy = self._cell_origin(entry_x, entry_y)
         pygame.draw.rect(
             self.screen,
             self.entry_color,
-            pygame.Rect(ox + 4, oy + 4, self.cell_size - 8, self.cell_size - 8),
+            pygame.Rect(ox + 4, oy + 4, self.cell_size -
+                        8, self.cell_size - 8),
         )
 
         exit_x, exit_y = self.maze.exit
@@ -170,19 +187,27 @@ class MazeRenderer:
         pygame.draw.rect(
             self.screen,
             self.exit_color,
-            pygame.Rect(ex + 4, ey + 4, self.cell_size - 8, self.cell_size - 8),
+            pygame.Rect(ex + 4, ey + 4, self.cell_size -
+                        8, self.cell_size - 8),
         )
 
         maze_width, maze_height = self._maze_pixel_size()
-        info = "R: regenerate | P: show/hide path | C: wall color | Q or ESC: quit"
+        info = (
+            "R: regenerate |"
+            "P: show/hide path | C: wall color | Q or ESC: quit"
+        )
         status = "Path visible" if self.show_path else "Path hidden"
         info_surface = self.font.render(info, True, self.text_color)
         status_surface = self.font.render(status, True, self.text_color)
         self.screen.blit(info_surface, (self.margin, maze_height + 16))
-        anim_status = "Animating" if self.animation_running else "Animation done"
+        anim_status = (
+            "Animating" if self.animation_running else "Animation done"
+        )
         anim_surface = self.font.render(anim_status, True, self.text_color)
         self.screen.blit(status_surface, (self.margin, maze_height + 40))
-        self.screen.blit(anim_surface, (self.margin + 220, maze_height + 40))
+        self.screen.blit(
+            anim_surface, (self.margin + 220, maze_height + 40)
+        )
 
         pygame.display.flip()
 
@@ -194,7 +219,8 @@ class MazeRenderer:
         self.show_path = not self.show_path
 
     def _cycle_wall_color(self) -> None:
-        self.wall_palette_index = (self.wall_palette_index + 1) % len(self.wall_palette)
+        self.wall_palette_index = (
+            self.wall_palette_index + 1) % len(self.wall_palette)
         self.wall_color = self.wall_palette[self.wall_palette_index]
 
     def run(self) -> None:

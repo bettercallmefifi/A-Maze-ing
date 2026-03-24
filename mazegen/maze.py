@@ -23,7 +23,6 @@ class Maze:
             Cell(x, y) for y in range(height) for x in range(width)
         ]
         self.output_file = output_file
-        
 
     def get_cell(self, x: int, y: int) -> Optional[Cell]:
         """Return the cell at coordinates when inside bounds, else None."""
@@ -55,14 +54,18 @@ class Maze:
 
         return neighbors
 
-    def get_walls_of_cell(self, x: int, y: int) -> List[Tuple[int, int, int, int]]:
+    def get_walls_of_cell(
+        self, x: int, y: int
+    ) -> List[Tuple[int, int, int, int]]:
         """Return wall candidates as edges from one cell to each neighbor."""
         walls: List[Tuple[int, int, int, int]] = []
         for nx, ny in self.get_neighbor_coords(x, y):
             walls.append((x, y, nx, ny))
         return walls
 
-    def remove_wall_between_coords(self, x1: int, y1: int, x2: int, y2: int) -> None:
+    def remove_wall_between_coords(
+        self, x1: int, y1: int, x2: int, y2: int
+    ) -> None:
         """Open wall between two adjacent cells addressed by coordinates."""
         cell1 = self.get_cell(x1, y1)
         cell2 = self.get_cell(x2, y2)
@@ -77,7 +80,8 @@ class Maze:
         start: Tuple[int, int],
         blocked: Optional[Set[Tuple[int, int]]] = None,
     ) -> List[Tuple[Tuple[int, int], Tuple[int, int]]]:
-        """Generate a maze using Prim's algorithm and return carved openings."""
+        """Generate a maze using Prim's"""
+        """algorithm and return carved openings."""
         blocked_cells = blocked or set()
         sx, sy = start
 
@@ -148,7 +152,9 @@ class Maze:
         dfs(start[0], start[1])
         return openings
 
-    def open_wall_between(self, cell1: Cell, cell2: Cell) -> None:
+    def open_wall_between(
+        self, cell1: Cell, cell2: Cell
+    ) -> None:
         """Open the wall shared by two adjacent cells."""
         x = cell2.x - cell1.x
         y = cell2.y - cell1.y

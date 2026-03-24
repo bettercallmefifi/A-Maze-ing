@@ -27,7 +27,7 @@ class Generator:
         else:
             random.seed(time.time_ns())
 
-        self.maze = Maze(width, height, entry, exit,output_file)
+        self.maze = Maze(width, height, entry, exit, output_file)
         self.perfect = perfect
         self.algorithm = algorithm.upper()
         self.openings: List[Tuple[Tuple[int, int], Tuple[int, int]]] = []
@@ -42,7 +42,10 @@ class Generator:
 
         applied = mark_42_cells(self.maze)
         if not applied:
-            print("ERROR: 42 pattern omitted (maze too small or overlaps entry/exit).")
+            print(
+                "ERROR: 42 pattern omitted "
+                "(maze too small or overlaps entry/exit)."
+            )
 
         if self.maze.get_cell(*self.maze.entry) is None:
             raise ValueError("invalid coordinates for start point")
@@ -54,9 +57,11 @@ class Generator:
         }
 
         if self.algorithm == "PRIM":
-            self.openings = self.maze.generate_with_prim(self.maze.entry, blocked_cells)
+            self.openings = self.maze.generate_with_prim(
+                self.maze.entry, blocked_cells)
         else:
-            self.openings = self.maze.generate_with_dfs(self.maze.entry, blocked_cells)
+            self.openings = self.maze.generate_with_dfs(
+                self.maze.entry, blocked_cells)
 
         if not self.perfect:
             self._add_extra_openings()
@@ -66,7 +71,9 @@ class Generator:
         self.maze.open_wall_between(cell1, cell2)
         self.openings.append(((cell1.x, cell1.y), (cell2.x, cell2.y)))
 
-    def _cells_have_closed_wall_between(self, cell1: Cell, cell2: Cell) -> bool:
+    def _cells_have_closed_wall_between(
+        self, cell1: Cell, cell2: Cell
+    ) -> bool:
         """Return True when two neighboring cells share a closed wall."""
         x = cell2.x - cell1.x
         y = cell2.y - cell1.y

@@ -31,6 +31,7 @@ def mark_42_cells(maze: Maze) -> bool:
                     cell.visited = True
     return True
 
+
 def can_apply_42_pattern(maze: Maze) -> bool:
     """Check if maze is big enough."""
     return maze.width >= len(PATTERN_42[0]) and maze.height >= len(PATTERN_42)

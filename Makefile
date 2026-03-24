@@ -13,6 +13,7 @@ debug:
 
 clean:
 	rm -rf __pycache__ */__pycache__ .mypy_cache
+	rm -rf mazegen.egg-info
 
 lint:
 	flake8 .
