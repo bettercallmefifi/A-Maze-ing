@@ -1,4 +1,4 @@
-*This project has been created as part of the curriculum by <feel-idr>, <zahraka>.*
+*This project has been created as part of the curriculum by *feel-idr*, *zahraka*.*
 
 #  A-Maze-ing
 
