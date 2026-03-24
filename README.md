@@ -296,8 +296,6 @@ maze = gen.get_maze()
 
 ##  Team & Project Management
 
-##  Team & Project Management
-
 ###  Roles
 
 * **<Feel-idr>**:
