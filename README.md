@@ -298,7 +298,7 @@ maze = gen.get_maze()
 
 ###  Roles
 
-* Feel-idr:
+* Feel-idr :
 
   * Configuration parsing (`ConfigParser`)
   * BFS shortest path implementation
@@ -307,7 +307,7 @@ maze = gen.get_maze()
   * Packaging (`pyproject.toml`)
   * Project structure & organization
 
-* Zahraka:
+* Zahraka :
 
   * Maze generation algorithms (DFS / Prim)
   * Core maze logic (`Maze`, `Cell`)
