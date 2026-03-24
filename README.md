@@ -1,4 +1,4 @@
-*This project has been created as part of the curriculum by <login>, <login>.*
+*This project has been created as part of the curriculum by <feel-idr>, <zahraka>.*
 
 #  A-Maze-ing
 
@@ -298,7 +298,7 @@ maze = gen.get_maze()
 
 ###  Roles
 
-* <Feel-idr>:
+* Feel-idr:
 
   * Configuration parsing (`ConfigParser`)
   * BFS shortest path implementation
@@ -307,7 +307,7 @@ maze = gen.get_maze()
   * Packaging (`pyproject.toml`)
   * Project structure & organization
 
-* <zahraka>:
+* Zahraka:
 
   * Maze generation algorithms (DFS / Prim)
   * Core maze logic (`Maze`, `Cell`)
