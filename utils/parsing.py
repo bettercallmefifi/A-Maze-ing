@@ -21,12 +21,16 @@ class ConfigParser:
     def validate_int(self, key: str, value: str) -> int:
         """Validate that a string is a non-negative integer."""
         try:
-            value = int(value)
+            parsed_value = int(value)
         except ValueError:
-            raise ValueError(f"Invalid value for {key} (use integer value)")
-        if value < 0:
-            raise ValueError(f"Invalid value for {key} (use non-negative value)")
-        return value
+            raise ValueError(
+                f"Invalid value for {key} (use integer value)"
+            )
+        if parsed_value < 0:
+            raise ValueError(
+                f"Invalid value for {key} (use non-negative value)"
+            )
+        return parsed_value
 
     def parse_coordinate(self, key: str, value: str) -> Tuple[int, int]:
         """Parse and validate coordinate values formatted as 'x,y'."""
@@ -37,9 +41,14 @@ class ConfigParser:
             x = int(coordinates[0].strip())
             y = int(coordinates[1].strip())
         except ValueError:
-            raise ValueError(f"Invalid value for {key} (use integer values for x,y)")
+            raise ValueError(
+                f"Invalid value for {key} "
+                "(use integer values for x,y)"
+            )
         if x < 0 or y < 0:
-            raise ValueError(f"Invalid value for {key} (use non-negative values)")
+            raise ValueError(
+                f"Invalid value for {key} (use non-negative values)"
+            )
         return x, y
 
     def parse(self) -> Dict[str, Any]:
@@ -53,7 +62,9 @@ class ConfigParser:
                 if not line or line.startswith("#"):
                     continue
                 if "=" not in line:
-                    raise ValueError(f"Invalid config line {index + 1}: {line}")
+                    raise ValueError(
+                        f"Invalid config line {index + 1}: {line}"
+                    )
 
                 key, value = line.split("=", 1)
                 key = key.upper().strip()
@@ -72,7 +83,10 @@ class ConfigParser:
                 elif key == "ALGORITHM":
                     cleaned_algorithm = value.upper()
                     if cleaned_algorithm not in {"DFS", "PRIM"}:
-                        raise ValueError("Invalid value for ALGORITHM key (use DFS or PRIM)")
+                        raise ValueError(
+                            "Invalid value for ALGORITHM key "
+                            "(use DFS or PRIM)"
+                        )
                     parsed_data[key] = cleaned_algorithm
                 elif key in {"WIDTH", "HEIGHT", "SEED"}:
                     parsed_data[key] = self.validate_int(key, value)
@@ -80,7 +94,10 @@ class ConfigParser:
                     parsed_data[key] = self.parse_coordinate(key, value)
                 else:
                     if not value:
-                        raise ValueError("Invalid value for OUTPUT_FILE (cannot be empty)")
+                        raise ValueError(
+                            "Invalid value for OUTPUT_FILE "
+                            "(cannot be empty)"
+                        )
                     parsed_data[key] = value
 
         for required in self.REQUIRED_KEYS:
@@ -99,6 +116,9 @@ class ConfigParser:
         if exit[0] >= width or exit[1] >= height:
             raise ValueError("Exit point out of bounds")
         if entry == exit:
-            raise ValueError("Invalid config for entry and exit (must be different)")
+            raise ValueError(
+                "Invalid config for entry and exit "
+                "(must be different)"
+            )
 
         return parsed_data

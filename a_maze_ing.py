@@ -77,7 +77,10 @@ def main() -> None:
             renderer = MazeRenderer(maze, openings, regenerate_callback)
             renderer.run()
         except Exception as e:
-            print(f"WARNING: GUI unavailable, falling back to ASCII renderer: {e}")
+            print(
+                "WARNING: GUI unavailable, falling back to ASCII "
+                f"renderer: {e}"
+            )
             _render_ascii_with_size_check(maze)
 
     except ValueError as e:

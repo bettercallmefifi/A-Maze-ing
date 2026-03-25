@@ -1,20 +1,23 @@
 .PHONY: install run debug clean lint
 
-install:
-	python3 -m pip install --upgrade pip
-	python3 -m pip install -r requirements.txt
-	python3 -m pip install -e .
+.venv/bin/python:
+	python3 -m venv .venv
 
-run:
-	python3 a_maze_ing.py config.txt
+install: .venv/bin/python
+	.venv/bin/python -m pip install --upgrade pip
+	.venv/bin/python -m pip install -r requirements.txt
+	.venv/bin/python -m pip install -e .
 
-debug:
-	python3 -m pdb a_maze_ing.py config.txt
+run: .venv/bin/python
+	.venv/bin/python a_maze_ing.py config.txt
+
+debug: .venv/bin/python
+	.venv/bin/python -m pdb a_maze_ing.py config.txt
 
 clean:
 	rm -rf __pycache__ */__pycache__ .mypy_cache
 	rm -rf mazegen.egg-info
 
 lint:
-	flake8 .
-	mypy . --warn-return-any --warn-unused-ignores --ignore-missing-imports --disallow-untyped-defs --check-untyped-defs
+	.venv/bin/python -m flake8 . --exclude=.venv,venv,__pycache__,.mypy_cache
+	.venv/bin/python -m mypy . --explicit-package-bases --warn-return-any --warn-unused-ignores --ignore-missing-imports --disallow-untyped-defs --check-untyped-defs

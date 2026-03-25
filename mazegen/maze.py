@@ -54,7 +54,11 @@ class Maze:
 
         return neighbors
 
-    def get_walls_of_cell(self, x: int, y: int) -> List[Tuple[int, int, int, int]]:
+    def get_walls_of_cell(
+        self,
+        x: int,
+        y: int,
+    ) -> List[Tuple[int, int, int, int]]:
         """Return wall candidates as edges from one cell to each neighbor."""
         walls: List[Tuple[int, int, int, int]] = []
         for nx, ny in self.get_neighbor_coords(x, y):

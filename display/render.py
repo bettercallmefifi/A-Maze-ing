@@ -155,7 +155,12 @@ class MazeRenderer:
         ok, message = self._check_terminal_size()
 
         self._clear_screen()
-        print(self._paint("╔════════ A-Maze-ing Terminal Viewer ════════╗", self.text_color))
+        print(
+            self._paint(
+                "╔════════ A-Maze-ing Terminal Viewer ════════╗",
+                self.text_color,
+            )
+        )
 
         if not ok:
             print(self._paint(f"ERROR: {message}", self.exit_color))
@@ -164,10 +169,25 @@ class MazeRenderer:
 
         if render_controls:
             print(self._paint("║ r : regenerate maze", self.dim_text_color))
-            print(self._paint("║ p : animate / toggle solution path", self.dim_text_color))
-            print(self._paint("║ c : cycle wall style color", self.dim_text_color))
+            print(
+                self._paint(
+                    "║ p : animate / toggle solution path",
+                    self.dim_text_color,
+                )
+            )
+            print(
+                self._paint(
+                    "║ c : cycle wall style color",
+                    self.dim_text_color,
+                )
+            )
             print(self._paint("║ q : quit viewer", self.dim_text_color))
-            print(self._paint("╚═════════════════════════════════════════════╝", self.text_color))
+            print(
+                self._paint(
+                    "╚═════════════════════════════════════════════╝",
+                    self.text_color,
+                )
+            )
             print()
 
         print(self._draw_ascii())
@@ -183,7 +203,9 @@ class MazeRenderer:
             self._animate_path_solution()
 
     def _cycle_wall_color(self) -> None:
-        self.wall_palette_index = (self.wall_palette_index + 1) % len(self.wall_palette)
+        self.wall_palette_index = (
+            self.wall_palette_index + 1
+        ) % len(self.wall_palette)
         self.wall_color = self.wall_palette[self.wall_palette_index]
 
     def run(self) -> None:
@@ -198,7 +220,9 @@ class MazeRenderer:
                         "Command (r/p/c/q, Enter=refresh): "
                     ).strip().lower()
                 else:
-                    command = input("Command (q to quit, Enter=refresh): ").strip().lower()
+                    command = input(
+                        "Command (q to quit, Enter=refresh): "
+                    ).strip().lower()
             except (EOFError, KeyboardInterrupt):
                 print()
                 break

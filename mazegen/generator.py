@@ -164,7 +164,11 @@ class Generator:
         else:
             raise ValueError("Unknown algorithm")
 
-    def _cells_have_closed_wall_between(self, cell1: Cell, cell2: Cell) -> bool:
+    def _cells_have_closed_wall_between(
+        self,
+        cell1: Cell,
+        cell2: Cell,
+    ) -> bool:
         """Return True when two neighboring cells share a closed wall."""
         x = cell2.x - cell1.x
         y = cell2.y - cell1.y
