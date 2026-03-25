@@ -58,8 +58,9 @@ def main() -> None:
     try:
         parser = ConfigParser(sys.argv[1])
         parsed_data = parser.parse()
+        configured_seed = parsed_data.get("SEED")
 
-        maze, openings = _build_maze(parsed_data, parsed_data.get("SEED"))
+        maze, openings = _build_maze(parsed_data, configured_seed)
 
         exporter = ExportMaze(maze)
         exporter.export()
@@ -72,7 +73,7 @@ def main() -> None:
                 Maze,
                 List[Tuple[Tuple[int, int], Tuple[int, int]]],
             ]:
-                return _build_maze(parsed_data, None)
+                return _build_maze(parsed_data, configured_seed)
 
             renderer = MazeRenderer(maze, openings, regenerate_callback)
             renderer.run()

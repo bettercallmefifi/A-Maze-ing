@@ -101,7 +101,7 @@ class MazeRenderer:
             return self._paint("◉", self.entry_color)
         if (x, y) == self.maze.exit:
             return self._paint("◎", self.exit_color)
-        if (x, y) in self.path_set:
+        if self.show_path and (x, y) in self.path_set:
             return self._paint("•", self.path_color)
         if cell.is_42:
             return self._paint("▒", self.pattern_color)
@@ -152,6 +152,8 @@ class MazeRenderer:
     def _draw(self, render_controls: bool = True) -> None:
         if self.show_path and not self.path_set:
             self._refresh_path_set()
+        elif not self.show_path:
+            self.path_set = set()
         ok, message = self._check_terminal_size()
 
         self._clear_screen()
@@ -195,6 +197,9 @@ class MazeRenderer:
 
     def _on_regenerate(self) -> None:
         self.maze, self.openings = self.regenerate_callback()
+        # Reset path display for the newly generated maze.
+        self.show_path = False
+        self.path_set = set()
 
     def _toggle_path(self) -> None:
         self.show_path = not self.show_path
