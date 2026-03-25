@@ -1,9 +1,9 @@
-from typing import List, Tuple, Optional, Set
+from typing import List, Optional, Set, Tuple
 import random
 import time
 
-from .maze import Maze
 from .cell import Cell
+from .maze import Maze
 from .pattern_42 import mark_42_cells
 
 
@@ -54,21 +54,10 @@ class Generator:
             raise ValueError("invalid coordinates for start point")
 
         blocked_cells: Set[Tuple[int, int]] = {
-            (cell.x, cell.y)
-            for cell in self.maze.grid
-            if cell.is_42
+            (cell.x, cell.y) for cell in self.maze.grid if cell.is_42
         }
 
-<<<<<<< HEAD
-        if self.algorithm == "PRIM":
-            self.openings = self.maze.generate_with_prim(
-                self.maze.entry, blocked_cells)
-        else:
-            self.openings = self.maze.generate_with_dfs(
-                self.maze.entry, blocked_cells)
-=======
         self.generate_maze(blocked_cells)
->>>>>>> 4ee574e (fixe all)
 
         if not self.perfect:
             self._add_extra_openings()
@@ -78,18 +67,16 @@ class Generator:
         self.maze.open_wall_between(cell1, cell2)
         self.openings.append(((cell1.x, cell1.y), (cell2.x, cell2.y)))
 
-<<<<<<< HEAD
-    def _cells_have_closed_wall_between(
-        self, cell1: Cell, cell2: Cell
-    ) -> bool:
-=======
     def _reset_visited(self) -> None:
         """Reset visited state used by generation algorithms."""
         for y in range(self.maze.height):
             for x in range(self.maze.width):
                 self.visited[y][x] = False
 
-    def _available_cells(self, blocked_cells: Set[Tuple[int, int]]) -> List[Tuple[int, int]]:
+    def _available_cells(
+        self,
+        blocked_cells: Set[Tuple[int, int]],
+    ) -> List[Tuple[int, int]]:
         """Return all cells that are not blocked."""
         return [
             (x, y)
@@ -134,7 +121,12 @@ class Generator:
 
             walls.remove(wall)
 
-    def _dfs_recursive(self, x: int, y: int, blocked_cells: Set[Tuple[int, int]]) -> None:
+    def _dfs_recursive(
+        self,
+        x: int,
+        y: int,
+        blocked_cells: Set[Tuple[int, int]],
+    ) -> None:
         """Recursive DFS."""
         self.visited[y][x] = True
         neighbors = self.maze.get_neighbor_coords(x, y)
@@ -157,7 +149,10 @@ class Generator:
         x_start, y_start = random.choice(cells)
         self._dfs_recursive(x_start, y_start, blocked_cells)
 
-    def generate_maze(self, blocked_cells: Optional[Set[Tuple[int, int]]] = None) -> None:
+    def generate_maze(
+        self,
+        blocked_cells: Optional[Set[Tuple[int, int]]] = None,
+    ) -> None:
         """Run selected algorithm (PRIM or DFS)."""
         blocked = blocked_cells or set()
         self._reset_visited()
@@ -170,7 +165,6 @@ class Generator:
             raise ValueError("Unknown algorithm")
 
     def _cells_have_closed_wall_between(self, cell1: Cell, cell2: Cell) -> bool:
->>>>>>> 4ee574e (fixe all)
         """Return True when two neighboring cells share a closed wall."""
         x = cell2.x - cell1.x
         y = cell2.y - cell1.y

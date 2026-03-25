@@ -1,4 +1,5 @@
-from typing import List, Tuple, Optional
+from typing import List, Optional, Tuple
+
 from .cell import Cell
 
 
@@ -11,7 +12,7 @@ class Maze:
         height: int,
         entry: Tuple[int, int],
         exit: Tuple[int, int],
-        output_file: str
+        output_file: str,
     ) -> None:
         """Initialize maze dimensions, endpoints, and cell grid."""
         self.width = width
@@ -53,9 +54,7 @@ class Maze:
 
         return neighbors
 
-    def get_walls_of_cell(
-        self, x: int, y: int
-    ) -> List[Tuple[int, int, int, int]]:
+    def get_walls_of_cell(self, x: int, y: int) -> List[Tuple[int, int, int, int]]:
         """Return wall candidates as edges from one cell to each neighbor."""
         walls: List[Tuple[int, int, int, int]] = []
         for nx, ny in self.get_neighbor_coords(x, y):
@@ -63,7 +62,11 @@ class Maze:
         return walls
 
     def remove_wall_between_coords(
-        self, x1: int, y1: int, x2: int, y2: int
+        self,
+        x1: int,
+        y1: int,
+        x2: int,
+        y2: int,
     ) -> None:
         """Open wall between two adjacent cells addressed by coordinates."""
         cell1 = self.get_cell(x1, y1)
@@ -74,90 +77,7 @@ class Maze:
 
         self.open_wall_between(cell1, cell2)
 
-<<<<<<< HEAD
-    def generate_with_prim(
-        self,
-        start: Tuple[int, int],
-        blocked: Optional[Set[Tuple[int, int]]] = None,
-    ) -> List[Tuple[Tuple[int, int], Tuple[int, int]]]:
-        """Generate a maze using Prim's"""
-        """algorithm and return carved openings."""
-        blocked_cells = blocked or set()
-        sx, sy = start
-
-        if (sx, sy) in blocked_cells:
-            return []
-
-        visited: Set[Tuple[int, int]] = {(sx, sy)}
-        walls = self.get_walls_of_cell(sx, sy)
-        openings: List[Tuple[Tuple[int, int], Tuple[int, int]]] = []
-
-        while walls:
-            x1, y1, x2, y2 = random.choice(walls)
-            walls.remove((x1, y1, x2, y2))
-
-            c1 = (x1, y1)
-            c2 = (x2, y2)
-
-            if c1 in blocked_cells or c2 in blocked_cells:
-                continue
-
-            c1_visited = c1 in visited
-            c2_visited = c2 in visited
-
-            if c1_visited == c2_visited:
-                continue
-
-            self.remove_wall_between_coords(x1, y1, x2, y2)
-            openings.append((c1, c2))
-
-            if not c1_visited:
-                visited.add(c1)
-                walls.extend(self.get_walls_of_cell(x1, y1))
-            else:
-                visited.add(c2)
-                walls.extend(self.get_walls_of_cell(x2, y2))
-
-        return openings
-
-    def generate_with_dfs(
-        self,
-        start: Tuple[int, int],
-        blocked: Optional[Set[Tuple[int, int]]] = None,
-    ) -> List[Tuple[Tuple[int, int], Tuple[int, int]]]:
-        """Generate a maze using recursive DFS and return carved openings."""
-        blocked_cells = blocked or set()
-        visited: Set[Tuple[int, int]] = set()
-        openings: List[Tuple[Tuple[int, int], Tuple[int, int]]] = []
-
-        def dfs(x: int, y: int) -> None:
-            current = (x, y)
-            visited.add(current)
-
-            neighbors = self.get_neighbor_coords(x, y)
-            random.shuffle(neighbors)
-
-            for nx, ny in neighbors:
-                target = (nx, ny)
-                if target in blocked_cells or target in visited:
-                    continue
-
-                self.remove_wall_between_coords(x, y, nx, ny)
-                openings.append((current, target))
-                dfs(nx, ny)
-
-        if start in blocked_cells:
-            return openings
-
-        dfs(start[0], start[1])
-        return openings
-
-    def open_wall_between(
-        self, cell1: Cell, cell2: Cell
-    ) -> None:
-=======
     def open_wall_between(self, cell1: Cell, cell2: Cell) -> None:
->>>>>>> 4ee574e (fixe all)
         """Open the wall shared by two adjacent cells."""
         x = cell2.x - cell1.x
         y = cell2.y - cell1.y

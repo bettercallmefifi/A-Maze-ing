@@ -1,13 +1,21 @@
 from __future__ import annotations
 
 from typing import Callable, List, Set, Tuple
-import pygame
+import os
+import shutil
+import sys
+import time
 
 from mazegen.find_path import bfs_shortest_path
 from mazegen.maze import Maze
 
 
 class MazeRenderer:
+    """Interactive terminal renderer with ANSI colors and simple controls."""
+
+    RESET = "\033[0m"
+    CLEAR = "\033[2J\033[H"
+
     def __init__(
         self,
         maze: Maze,
@@ -21,228 +29,185 @@ class MazeRenderer:
         self.regenerate_callback = regenerate_callback
 
         self.wall_palette = [
-            (31, 41, 55),
-            (15, 118, 110),
-            (37, 99, 235),
-            (185, 28, 28),
+            "\033[38;5;240m",
+            "\033[38;5;37m",
+            "\033[38;5;33m",
+            "\033[38;5;160m",
         ]
         self.wall_palette_index = 0
         self.wall_color = self.wall_palette[self.wall_palette_index]
 
-        self.path_color = (232, 93, 4)
-        self.entry_color = (22, 163, 74)
-        self.exit_color = (220, 38, 38)
-        self.pattern_color = (30, 64, 175)
-        self.background_color = (248, 250, 252)
-        self.text_color = (17, 24, 39)
+        self.path_color = "\033[38;5;208m"
+        self.entry_color = "\033[38;5;40m"
+        self.exit_color = "\033[38;5;196m"
+        self.pattern_color = "\033[38;5;27m"
+        self.text_color = "\033[38;5;250m"
+        self.dim_text_color = "\033[38;5;244m"
 
         self.show_path = False
-        self.steps_per_frame = 4
+        self.path_set: Set[Tuple[int, int]] = set()
+        self.path_animation_delay = 0.02
+        self.ansi_enabled = sys.stdout.isatty()
 
-        self.animation_open_walls: Set[Tuple[int, int, str]] = set()
-        self.animation_index = 0
-        self.animation_running = False
-        self.use_animation_state = False
+    def _paint(self, text: str, color: str) -> str:
+        if not self.ansi_enabled:
+            return text
+        return f"{color}{text}{self.RESET}"
 
-        self.cell_size = max(
-            18, min(36, 900 // max(self.maze.width, self.maze.height)))
-        self.margin = 24
-        self.info_height = 70
+    def _clear_screen(self) -> None:
+        command = "cls" if os.name == "nt" else "clear"
+        os.system(command)
 
-        pygame.init()
-        pygame.display.set_caption("A-Maze-ing Viewer (pygame)")
-        width, height = self._maze_pixel_size()
-        self.screen = pygame.display.set_mode(
-            (width, height + self.info_height))
-        self.font = pygame.font.SysFont("monospace", 18)
+    def _check_terminal_size(self) -> tuple[bool, str]:
+        required_cols = 4 * self.maze.width + 1
+        required_rows = 2 * self.maze.height + 8
+        size = shutil.get_terminal_size(fallback=(80, 24))
+        if size.columns < required_cols or size.lines < required_rows:
+            return (
+                False,
+                "Terminal too small "
+                f"(required {required_cols}x{required_rows}, "
+                f"current {size.columns}x{size.lines})",
+            )
+        return True, ""
 
-        self._start_animation(self.openings)
+    def _refresh_path_set(self) -> None:
+        self.path_set = set()
+        if not self.show_path:
+            return
+        path = bfs_shortest_path(self.maze)
+        self.path_set = set(path)
 
-    def _maze_pixel_size(self) -> tuple[int, int]:
-        width = self.margin * 2 + self.maze.width * self.cell_size
-        height = self.margin * 2 + self.maze.height * self.cell_size
-        return width, height
-
-    def _cell_origin(self, x: int, y: int) -> tuple[int, int]:
-        return (
-            self.margin + x * self.cell_size,
-            self.margin + y * self.cell_size,
-        )
-
-    def _cell_center(self, x: int, y: int) -> tuple[int, int]:
-        ox, oy = self._cell_origin(x, y)
-        return (ox + self.cell_size // 2, oy + self.cell_size // 2)
-
-    def _start_animation(
-        self, openings: List[Tuple[Tuple[int, int], Tuple[int, int]]]
-    ) -> None:
-        self.openings = openings
-        self.animation_open_walls = set()
-        self.animation_index = 0
-        self.animation_running = bool(openings)
-        self.use_animation_state = bool(openings)
-
-    def _direction_between(
-        self,
-        source: Tuple[int, int],
-        target: Tuple[int, int],
-    ) -> Tuple[str, str]:
-        (x1, y1), (x2, y2) = source, target
-        if x2 == x1 + 1 and y1 == y2:
-            return "E", "W"
-        if x2 == x1 - 1 and y1 == y2:
-            return "W", "E"
-        if y2 == y1 + 1 and x1 == x2:
-            return "S", "N"
-        return "N", "S"
-
-    def _advance_animation(self) -> None:
-        if not self.animation_running:
+    def _animate_path_solution(self) -> None:
+        path = bfs_shortest_path(self.maze)
+        self.path_set = set()
+        if not path:
             return
 
-        end_index = min(self.animation_index +
-                        self.steps_per_frame, len(self.openings))
-        for i in range(self.animation_index, end_index):
-            source, target = self.openings[i]
-            source_dir, target_dir = self._direction_between(source, target)
-            self.animation_open_walls.add((source[0], source[1], source_dir))
-            self.animation_open_walls.add((target[0], target[1], target_dir))
+        if not self.ansi_enabled:
+            self.path_set = set(path)
+            return
 
-        self.animation_index = end_index
-        if self.animation_index >= len(self.openings):
-            self.animation_running = False
+        for point in path:
+            self.path_set.add(point)
+            self._draw(render_controls=False)
+            time.sleep(self.path_animation_delay)
 
-    def _is_wall_closed(self, cell, x: int, y: int, direction: str) -> bool:
-        if self.use_animation_state:
-            return (x, y, direction) not in self.animation_open_walls
-        if direction == "N":
-            return cell.north
-        if direction == "E":
-            return cell.east
-        if direction == "S":
-            return cell.south
-        return cell.west
+    def _cell_char(self, x: int, y: int) -> str:
+        cell = self.maze.get_cell(x, y)
+        if cell is None:
+            return " "
+        if (x, y) == self.maze.entry:
+            return self._paint("◉", self.entry_color)
+        if (x, y) == self.maze.exit:
+            return self._paint("◎", self.exit_color)
+        if (x, y) in self.path_set:
+            return self._paint("•", self.path_color)
+        if cell.is_42:
+            return self._paint("▒", self.pattern_color)
+        return " "
 
-    def _draw(self) -> None:
-        self.screen.fill(self.background_color)
+    def _draw_ascii(self) -> str:
+        lines: List[str] = []
+        wall_plus = self._paint("◆", self.wall_color)
+        wall_h = self._paint("═══", self.wall_color)
+        wall_v = self._paint("║", self.wall_color)
 
-        if self.show_path and not self.animation_running:
-            path = bfs_shortest_path(self.maze)
-            if len(path) >= 2:
-                points = [self._cell_center(x, y) for x, y in path]
-                pygame.draw.lines(
-                    self.screen,
-                    self.path_color,
-                    False,
+        top = []
+        for x in range(self.maze.width):
+            cell = self.maze.get_cell(x, 0)
+            top.append(wall_plus)
+            if cell and cell.north:
+                top.append(wall_h)
+            else:
+                top.append("   ")
+        top.append(wall_plus)
+        lines.append("".join(top))
 
-                    points,
-                    max(2, self.cell_size // 5),
-                )
         for y in range(self.maze.height):
+            middle: List[str] = []
             for x in range(self.maze.width):
                 cell = self.maze.get_cell(x, y)
                 if cell is None:
                     continue
+                if x == 0:
+                    middle.append(wall_v if cell.west else " ")
+                middle.append(f" {self._cell_char(x, y)} ")
+                middle.append(wall_v if cell.east else " ")
+            lines.append("".join(middle))
 
-                ox, oy = self._cell_origin(x, y)
-                x2 = ox + self.cell_size
-                y2 = oy + self.cell_size
+            bottom: List[str] = []
+            for x in range(self.maze.width):
+                cell = self.maze.get_cell(x, y)
+                bottom.append(wall_plus)
+                if cell and cell.south:
+                    bottom.append(wall_h)
+                else:
+                    bottom.append("   ")
+            bottom.append(wall_plus)
+            lines.append("".join(bottom))
 
-                if cell.is_42:
-                    pygame.draw.rect(
-                        self.screen,
-                        self.pattern_color,
-                        pygame.Rect(ox + 5, oy + 5, self.cell_size -
-                                    10, self.cell_size - 10),
-                    )
+        return "\n".join(lines)
 
-                if self._is_wall_closed(cell, x, y, "N"):
-                    pygame.draw.line(
-                        self.screen, self.wall_color, (ox, oy), (x2, oy), 2)
-                if self._is_wall_closed(cell, x, y, "W"):
-                    pygame.draw.line(
-                        self.screen, self.wall_color, (ox, oy), (ox, y2), 2)
-                if x == self.maze.width - 1 and self._is_wall_closed(
-                    cell, x, y, "E"
-                ):
-                    pygame.draw.line(
-                        self.screen, self.wall_color, (x2, oy), (x2, y2), 2)
-                if y == self.maze.height - 1 and self._is_wall_closed(
-                    cell, x, y, "S"
-                ):
-                    pygame.draw.line(
-                        self.screen, self.wall_color, (ox, y2), (x2, y2), 2)
+    def _draw(self, render_controls: bool = True) -> None:
+        if self.show_path and not self.path_set:
+            self._refresh_path_set()
+        ok, message = self._check_terminal_size()
 
-        entry_x, entry_y = self.maze.entry
-        ox, oy = self._cell_origin(entry_x, entry_y)
-        pygame.draw.rect(
-            self.screen,
-            self.entry_color,
-            pygame.Rect(ox + 4, oy + 4, self.cell_size -
-                        8, self.cell_size - 8),
-        )
+        self._clear_screen()
+        print(self._paint("╔════════ A-Maze-ing Terminal Viewer ════════╗", self.text_color))
 
-        exit_x, exit_y = self.maze.exit
-        ex, ey = self._cell_origin(exit_x, exit_y)
-        pygame.draw.rect(
-            self.screen,
-            self.exit_color,
-            pygame.Rect(ex + 4, ey + 4, self.cell_size -
-                        8, self.cell_size - 8),
-        )
+        if not ok:
+            print(self._paint(f"ERROR: {message}", self.exit_color))
+            print()
+            return
 
-        maze_width, maze_height = self._maze_pixel_size()
-        info = (
-            "R: regenerate |"
-            "P: show/hide path | C: wall color | Q or ESC: quit"
-        )
-        status = "Path visible" if self.show_path else "Path hidden"
-        info_surface = self.font.render(info, True, self.text_color)
-        status_surface = self.font.render(status, True, self.text_color)
-        self.screen.blit(info_surface, (self.margin, maze_height + 16))
-        anim_status = (
-            "Animating" if self.animation_running else "Animation done"
-        )
-        anim_surface = self.font.render(anim_status, True, self.text_color)
-        self.screen.blit(status_surface, (self.margin, maze_height + 40))
-        self.screen.blit(
-            anim_surface, (self.margin + 220, maze_height + 40)
-        )
+        if render_controls:
+            print(self._paint("║ r : regenerate maze", self.dim_text_color))
+            print(self._paint("║ p : animate / toggle solution path", self.dim_text_color))
+            print(self._paint("║ c : cycle wall style color", self.dim_text_color))
+            print(self._paint("║ q : quit viewer", self.dim_text_color))
+            print(self._paint("╚═════════════════════════════════════════════╝", self.text_color))
+            print()
 
-        pygame.display.flip()
+        print(self._draw_ascii())
+        print()
 
     def _on_regenerate(self) -> None:
-        self.maze, openings = self.regenerate_callback()
-        self._start_animation(openings)
+        self.maze, self.openings = self.regenerate_callback()
 
     def _toggle_path(self) -> None:
         self.show_path = not self.show_path
+        self.path_set = set()
+        if self.show_path:
+            self._animate_path_solution()
 
     def _cycle_wall_color(self) -> None:
-        self.wall_palette_index = (
-            self.wall_palette_index + 1) % len(self.wall_palette)
+        self.wall_palette_index = (self.wall_palette_index + 1) % len(self.wall_palette)
         self.wall_color = self.wall_palette[self.wall_palette_index]
 
     def run(self) -> None:
-        clock = pygame.time.Clock()
         running = True
-
         while running:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    running = False
-                elif event.type == pygame.KEYDOWN:
-                    if event.key in (pygame.K_q, pygame.K_ESCAPE):
-                        running = False
-                    elif event.key == pygame.K_r:
-                        self._on_regenerate()
-                    elif event.key == pygame.K_p:
-                        self._toggle_path()
-                    elif event.key == pygame.K_c:
-                        self._cycle_wall_color()
+            self._draw(render_controls=True)
 
-            self._advance_animation()
-            self._draw()
-            clock.tick(60)
+            ok, _message = self._check_terminal_size()
+            try:
+                if ok:
+                    command = input(
+                        "Command (r/p/c/q, Enter=refresh): "
+                    ).strip().lower()
+                else:
+                    command = input("Command (q to quit, Enter=refresh): ").strip().lower()
+            except (EOFError, KeyboardInterrupt):
+                print()
+                break
 
-        pygame.quit()
+            if command in {"q", "quit", "esc", "escape"}:
+                running = False
+            elif command == "r":
+                self._on_regenerate()
+            elif command == "p":
+                self._toggle_path()
+            elif command == "c":
+                self._cycle_wall_color()

@@ -64,21 +64,14 @@ def main() -> None:
         exporter = ExportMaze(maze)
         exporter.export()
 
-<<<<<<< HEAD
         # Try interactive visual mode first; fall back to ASCII output.
         try:
             from display.render import MazeRenderer
 
             def regenerate_callback() -> Tuple[
-                Maze, List[Tuple[Tuple[int, int], Tuple[int, int]]]
+                Maze,
+                List[Tuple[Tuple[int, int], Tuple[int, int]]],
             ]:
-                # Regeneration ignores the fixed seed to ensure a new maze.
-=======
-        try:
-            from display.render import MazeRenderer
-
-            def regenerate_callback() -> Tuple[Maze, List[Tuple[Tuple[int, int], Tuple[int, int]]]]:
->>>>>>> 4ee574e (fixe all)
                 return _build_maze(parsed_data, None)
 
             renderer = MazeRenderer(maze, openings, regenerate_callback)
