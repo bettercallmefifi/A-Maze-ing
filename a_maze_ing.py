@@ -4,6 +4,7 @@ from export.export import ExportMaze
 from mazegen.pattern_42 import mark_42_cells, apply_42_pattern
 from mazegen.maze import Maze
 import sys
+import shutil
 from typing import Any, Dict, List, Optional, Tuple
 
 
@@ -29,6 +30,23 @@ def _build_maze(
     apply_42_pattern(maze)
 
     return maze, generator.get_openings()
+
+
+def _render_ascii_with_size_check(maze: Maze) -> None:
+    """Render ASCII maze only when terminal dimensions are sufficient."""
+    required_cols = 4 * maze.width + 1
+    required_rows = 2 * maze.height + 1
+    size = shutil.get_terminal_size(fallback=(80, 24))
+
+    if size.columns < required_cols or size.lines < required_rows:
+        print(
+            "ERROR: Terminal too small for ASCII maze "
+            f"(required at least {required_cols}x{required_rows}, "
+            f"current {size.columns}x{size.lines})."
+        )
+        return
+
+    print(maze.ascii_render())
 
 
 def main() -> None:
@@ -67,7 +85,7 @@ def main() -> None:
             renderer.run()
         except Exception as e:
             print(f"WARNING: GUI unavailable, falling back to ASCII renderer: {e}")
-            print(maze.ascii_render())
+            _render_ascii_with_size_check(maze)
 
     except ValueError as e:
         print(f"ERROR: Invalid configuration or maze parameters: {e}")
