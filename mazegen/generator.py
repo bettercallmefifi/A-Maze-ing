@@ -57,6 +57,11 @@ class Generator:
             (cell.x, cell.y) for cell in self.maze.grid if cell.is_42
         }
 
+        if self.maze.entry in blocked_cells or self.maze.exit in blocked_cells:
+            raise ValueError(
+                "ENTRY and EXIT must not overlap the 42 pattern."
+            )
+
         self.generate_maze(blocked_cells)
 
         if not self.perfect:
@@ -91,35 +96,41 @@ class Generator:
         if not cells:
             return
 
-        x_start, y_start = random.choice(cells)
-        self.visited[y_start][x_start] = True
+        remaining: Set[Tuple[int, int]] = set(cells)
 
-        walls: List[Tuple[int, int, int, int]] = []
-        walls.extend(self.maze.get_walls_of_cell(x_start, y_start))
+        while remaining:
+            x_start, y_start = random.choice(list(remaining))
+            self.visited[y_start][x_start] = True
+            remaining.discard((x_start, y_start))
 
-        while walls:
-            wall = random.choice(walls)
-            x1, y1, x2, y2 = wall
+            walls: List[Tuple[int, int, int, int]] = []
+            walls.extend(self.maze.get_walls_of_cell(x_start, y_start))
 
-            if (x1, y1) in blocked_cells or (x2, y2) in blocked_cells:
+            while walls:
+                wall = random.choice(walls)
+                x1, y1, x2, y2 = wall
+
+                if (x1, y1) in blocked_cells or (x2, y2) in blocked_cells:
+                    walls.remove(wall)
+                    continue
+
+                cell1_visited = self.visited[y1][x1]
+                cell2_visited = self.visited[y2][x2]
+
+                if cell1_visited != cell2_visited:
+                    self.maze.remove_wall_between_coords(x1, y1, x2, y2)
+                    self.openings.append(((x1, y1), (x2, y2)))
+
+                    if not cell1_visited:
+                        self.visited[y1][x1] = True
+                        remaining.discard((x1, y1))
+                        walls.extend(self.maze.get_walls_of_cell(x1, y1))
+                    else:
+                        self.visited[y2][x2] = True
+                        remaining.discard((x2, y2))
+                        walls.extend(self.maze.get_walls_of_cell(x2, y2))
+
                 walls.remove(wall)
-                continue
-
-            cell1_visited = self.visited[y1][x1]
-            cell2_visited = self.visited[y2][x2]
-
-            if cell1_visited != cell2_visited:
-                self.maze.remove_wall_between_coords(x1, y1, x2, y2)
-                self.openings.append(((x1, y1), (x2, y2)))
-
-                if not cell1_visited:
-                    self.visited[y1][x1] = True
-                    walls.extend(self.maze.get_walls_of_cell(x1, y1))
-                else:
-                    self.visited[y2][x2] = True
-                    walls.extend(self.maze.get_walls_of_cell(x2, y2))
-
-            walls.remove(wall)
 
     def _dfs_recursive(
         self,
@@ -146,8 +157,11 @@ class Generator:
         if not cells:
             return
 
-        x_start, y_start = random.choice(cells)
-        self._dfs_recursive(x_start, y_start, blocked_cells)
+        random.shuffle(cells)
+        for x_start, y_start in cells:
+            if self.visited[y_start][x_start]:
+                continue
+            self._dfs_recursive(x_start, y_start, blocked_cells)
 
     def generate_maze(
         self,
