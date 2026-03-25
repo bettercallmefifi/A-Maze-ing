@@ -1,6 +1,7 @@
 from mazegen.maze import Maze
 from mazegen.find_path import bfs_shortest_path
 from typing import List, Tuple
+from pathlib import Path
 
 Coord = Tuple[int, int]
 
@@ -37,7 +38,11 @@ class ExportMaze:
         else:
             directions = self.path_to_directions(path)
 
-        with open(self.maze.output_file, "w") as file:
+        output_path = Path(self.maze.output_file)
+        if output_path.parent and not output_path.parent.exists():
+            output_path.parent.mkdir(parents=True, exist_ok=True)
+
+        with output_path.open("w") as file:
             for y in range(self.maze.height):
                 for x in range(self.maze.width):
 

@@ -14,10 +14,10 @@ def _open_neighbors(maze: Maze, coord: Coord) -> List[Coord]:
         return []
 
     directions = [
-        (0, -1, cell.north),  # N
-        (0, 1, cell.south),   # S
-        (-1, 0, cell.west),   # W
-        (1, 0, cell.east),    # E
+        (0, -1, cell.north),
+        (0, 1, cell.south),
+        (-1, 0, cell.west),
+        (1, 0, cell.east),
     ]
 
     result: List[Coord] = []

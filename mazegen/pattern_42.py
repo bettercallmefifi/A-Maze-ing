@@ -48,7 +48,6 @@ def apply_42_pattern(maze: Maze) -> None:
     start_x = (maze.width - pattern_w) // 2
     start_y = (maze.height - pattern_h) // 2
 
-    # mark cells
     for py in range(pattern_h):
         for px in range(pattern_w):
             if PATTERN_42[py][px] == 1:
@@ -58,9 +57,8 @@ def apply_42_pattern(maze: Maze) -> None:
                 cell = maze.get_cell(cx, cy)
                 if cell:
                     cell.is_42 = True
-                    cell.visited = True  # important for DFS
+                    cell.visited = True
 
-    # close walls around 42
     for y in range(maze.height):
         for x in range(maze.width):
             cell = maze.get_cell(x, y)

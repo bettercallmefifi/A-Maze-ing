@@ -1,5 +1,4 @@
-from typing import List, Tuple, Optional, Set
-import random
+from typing import List, Tuple, Optional
 from .cell import Cell
 
 
@@ -43,13 +42,13 @@ class Maze:
         """Return neighboring cell coordinates in N, E, S, W order."""
         neighbors: List[Tuple[int, int]] = []
 
-        if y > 0:  # North
+        if y > 0:
             neighbors.append((x, y - 1))
-        if x < self.width - 1:  # East
+        if x < self.width - 1:
             neighbors.append((x + 1, y))
-        if y < self.height - 1:  # South
+        if y < self.height - 1:
             neighbors.append((x, y + 1))
-        if x > 0:  # West
+        if x > 0:
             neighbors.append((x - 1, y))
 
         return neighbors
@@ -75,6 +74,7 @@ class Maze:
 
         self.open_wall_between(cell1, cell2)
 
+<<<<<<< HEAD
     def generate_with_prim(
         self,
         start: Tuple[int, int],
@@ -155,6 +155,9 @@ class Maze:
     def open_wall_between(
         self, cell1: Cell, cell2: Cell
     ) -> None:
+=======
+    def open_wall_between(self, cell1: Cell, cell2: Cell) -> None:
+>>>>>>> 4ee574e (fixe all)
         """Open the wall shared by two adjacent cells."""
         x = cell2.x - cell1.x
         y = cell2.y - cell1.y
