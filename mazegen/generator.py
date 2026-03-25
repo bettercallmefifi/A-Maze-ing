@@ -45,9 +45,9 @@ class Generator:
 
         applied = mark_42_cells(self.maze)
         if not applied:
-            print(
-                "ERROR: 42 pattern omitted "
-                "(maze too small or overlaps entry/exit)."
+            raise ValueError(
+                "42 pattern cannot fit in this maze size "
+                "(minimum required: 7x5)."
             )
 
         if self.maze.get_cell(*self.maze.entry) is None:
