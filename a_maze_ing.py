@@ -99,7 +99,7 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    try :
+    try:
         main()
     except KeyboardInterrupt as e:
         print(f"{e}")

@@ -1,8 +1,9 @@
 # MAZE config
-
-WIDTH=20
-HEIGHT=15
+#KLfssd
+WIDTH    =      20
+HEIGHT          = 15
 ENTRY=0,0
+#G
 EXIT=10,14
 OUTPUT_FILE=maze.out
 PERFECT=True
