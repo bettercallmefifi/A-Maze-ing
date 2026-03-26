@@ -1,174 +1,194 @@
-This project has been created as part of the curriculum by feel-idr and zahraka.
+*This project has been created as part of the 42 curriculum by feel-idr, zahraka.*
 
-# A-Maze-ing
+---
 
-Python maze generator with:
+#  A-Maze-ing
 
-- DFS or Prim generation
-- BFS shortest-path solving
-- Hex export format
-- Terminal interactive renderer
-- 42 pattern integration
+##  Description
 
-## Installation
+A-Maze-ing is a Python project that generates, solves, visualizes, and exports mazes.
 
-Using Makefile:
+The project is divided into several modules:
+
+* A **maze generator** using DFS or Prim algorithms
+* A **pathfinding system** using BFS (shortest path)
+* A **terminal-based interactive renderer**
+* A **file exporter** that outputs the maze in hexadecimal format
+
+Additionally, the maze includes a special **"42 pattern"** embedded into its structure.
+
+---
+
+##  Instructions
+
+###  Installation
 
 ```bash
 make install
 ```
 
-Manual:
-
-```bash
-python3 -m venv .venv
-source .venv/bin/activate
-python3 -m pip install --upgrade pip
-python3 -m pip install -r requirements.txt
-python3 -m pip install -e .
-```
-
-## Run
+###  Run the project
 
 ```bash
 make run
 ```
 
-Or:
-
-```bash
-python3 a_maze_ing.py config.txt
-```
-
-Debug:
+###  Debug mode
 
 ```bash
 make debug
 ```
 
-Lint:
+###  Clean project
 
 ```bash
-make lint
+make clean
 ```
 
-## Config
+---
 
-Example:
+##  Configuration file
 
-```txt
-WIDTH=21
-HEIGHT=21
-ENTRY=4,3
-EXIT=14,20
+The program requires a configuration file (e.g., `config.txt`).
+
+### Example:
+
+```
+WIDTH=20
+HEIGHT=15
+ENTRY=0,0
+EXIT=10,14
 OUTPUT_FILE=maze.out
 PERFECT=True
-ALGORITHM=prim
-SEED=42
+ALGORITHM=PRIM
 ```
 
-Parameters:
+###  Parameters:
 
-| Key         | Type           | Required | Notes |
-| ----------- | -------------- | -------- | ----- |
-| WIDTH       | int            | yes      | > 0 |
-| HEIGHT      | int            | yes      | > 0 |
-| ENTRY       | tuple(int,int) | yes      | in bounds |
-| EXIT        | tuple(int,int) | yes      | in bounds, different from ENTRY |
-| OUTPUT_FILE | string         | yes      | non-empty |
-| PERFECT     | bool           | yes      | true/false |
-| ALGORITHM   | string         | no       | DFS or PRIM, default DFS |
-| SEED        | int            | no       | deterministic when provided |
+* `WIDTH`, `HEIGHT`: Maze dimensions
+* `ENTRY`: Start position (x,y)
+* `EXIT`: End position (x,y)
+* `OUTPUT_FILE`: Output file name
+* `PERFECT`:
 
-## Terminal Renderer Controls
+  * `True` → no cycles (perfect maze)
+  * `False` → allows multiple paths
+* `SEED` (optional): Random seed
+* `ALGORITHM`: `DFS` or `PRIM`
 
-| Key | Action |
-| --- | ------ |
-| r   | Regenerate maze |
-| p   | Show/hide shortest path |
-| c   | Cycle wall color |
-| q   | Quit |
+---
 
-Behavior notes:
+##  Maze Algorithm
 
-- Maze generation is animated by default when the viewer starts.
-- Pressing r re-generates and replays the generation animation.
-- After pressing r, path display is reset.
-- You must press p again to show the path for the new maze.
+### Chosen algorithm: **DFS (Depth-First Search)** and **Prim**
 
-Verification tips:
+* DFS generates long corridors and is simple to implement.
+* Prim creates more uniform and complex mazes.
 
-- Run make run (or python3 a_maze_ing.py config.txt).
-- On startup, you should see walls being carved progressively before controls appear.
-- Press r and verify that carving animation is replayed.
-- Increase maze size in config (for example 35x25) if animation is too fast to notice.
+###  Why this choice?
 
-## Seed Behavior
+* DFS is **fast and easy**
+* Prim provides **better randomness**
+* Supporting both allows flexibility
 
-- If SEED is provided, generation is deterministic.
-- Using the same WIDTH/HEIGHT/ENTRY/EXIT/PERFECT/ALGORITHM/SEED gives the same maze.
-- Regenerate (r) reuses the configured seed in the same run.
-- If SEED is omitted, generation uses time-based randomness.
+---
 
-## 42 Pattern Rules
+##  Pathfinding
 
-The 42 pattern is embedded into the maze and blocks its marked cells.
+We use **BFS (Breadth-First Search)** to compute the shortest path from ENTRY to EXIT.
 
-Rules:
+* Guarantees shortest path
+* Avoids blocked cells (42 pattern)
 
-- Minimum maze size is 7x5.
-- If size is smaller than 7x5, generation stops with an error.
-- ENTRY and EXIT must not overlap any 42-pattern cell.
+---
 
-If constraints are violated, the app prints an error and does not generate/export the maze.
+##  Reusable Module: `mazegen`
 
-## Algorithms
+The `mazegen` package is reusable and contains:
 
-Supported generation algorithms:
+* `Maze`: grid structure
+* `Cell`: individual cell with walls
+* `Generator`: maze generation (DFS / Prim)
+* `find_path`: BFS algorithm
 
-- DFS
-- PRIM
+### Example usage:
 
-Pathfinding:
+```python
+from mazegen import MazeGenerator
 
-- BFS shortest path from ENTRY to EXIT
+generator = MazeGenerator(...)
+generator.generate()
+maze = generator.get_maze()
+```
 
-## Export Format
+---
 
-Each cell is encoded in hexadecimal using wall bits:
+##  Display System
 
-| Direction | Bit |
-| --------- | --- |
-| North     | 1 |
-| East      | 2 |
-| South     | 4 |
-| West      | 8 |
+The project includes a terminal renderer:
 
-Examples:
+* Shows maze with ANSI colors
+* Interactive controls:
 
-- 0 means no walls
-- F means all walls
+  * `r` → regenerate maze
+  * `p` → show shortest path
+  * `c` → change colors
+  * `q` → quit
 
-## Project Structure
+---
 
-- a_maze_ing.py: CLI entry point
-- utils/parsing.py: config parsing and validation
-- mazegen/generator.py: maze generation logic
-- mazegen/pattern_42.py: 42 pattern marking/applying
-- mazegen/find_path.py: BFS shortest path
-- display/render.py: terminal interactive renderer
-- export/export.py: hex export
+##  Export System
 
-## Team Roles
+The maze is exported as:
 
-- feel idr:
-	- configuration parsing and validation
-	- BFS shortest path implementation
-	- 42 pattern integration
-	- project tooling and structure (Makefile, packaging)
+* Hexadecimal grid (walls encoding)
+* Entry and exit coordinates
+* Shortest path directions (N/E/S/W)
 
-- zahraka:
-	- maze generation algorithms (DFS, PRIM)
-	- core maze model and wall logic
-	- terminal rendering workflow and controls
-	- export format implementation
+---
+
+##  Resources
+
+* Python official documentation
+* BFS & DFS algorithms (GeeksforGeeks)
+* ANSI terminal color codes
+
+These resources were used for:
+
+* Algorithm implementation
+* Terminal rendering
+* Project structure design
+
+---
+
+##  Team & Project Management
+
+###  Roles
+
+* **feel-idr**:
+
+  * Parsing (config file)
+  * BFS shortest path
+  * 42 pattern integration
+  * Project structure
+  * Makefile
+
+* **zahraka**:
+
+  * Maze generation (DFS / Prim)
+  * Rendering system
+  * Export system
+  * Managed project tooling and the packaging structure 
+
+---
+
+##  Conclusion
+
+This project demonstrates:
+
+* Algorithm design (DFS, BFS, Prim)
+* Modular Python architecture
+* Interactive terminal UI
+* Clean and reusable code design
+
+---
