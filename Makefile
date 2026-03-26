@@ -1,4 +1,4 @@
-.PHONY: install run debug clean lint
+.PHONY: install run debug build clean lint
 
 .venv/bin/python:
 	python3 -m venv .venv
@@ -14,9 +14,13 @@ run: .venv/bin/python
 debug: .venv/bin/python
 	.venv/bin/python -m pdb a_maze_ing.py config.txt
 
+build: .venv/bin/python
+	.venv/bin/python -m pip install --upgrade build
+	.venv/bin/python -m build
+
 clean:
 	rm -rf __pycache__ */__pycache__ .mypy_cache
-	rm -rf mazegen.egg-info
+	rm -rf mazegen.egg-info dist build
 
 lint:
 	.venv/bin/python -m flake8 . --exclude=.venv,venv,__pycache__,.mypy_cache
