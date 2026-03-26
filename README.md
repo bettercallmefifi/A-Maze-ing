@@ -91,8 +91,17 @@ Parameters:
 
 Behavior notes:
 
+- Maze generation is animated by default when the viewer starts.
+- Pressing r re-generates and replays the generation animation.
 - After pressing r, path display is reset.
 - You must press p again to show the path for the new maze.
+
+Verification tips:
+
+- Run make run (or python3 a_maze_ing.py config.txt).
+- On startup, you should see walls being carved progressively before controls appear.
+- Press r and verify that carving animation is replayed.
+- Increase maze size in config (for example 35x25) if animation is too fast to notice.
 
 ## Seed Behavior
 

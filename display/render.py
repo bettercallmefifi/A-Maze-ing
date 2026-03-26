@@ -47,7 +47,10 @@ class MazeRenderer:
         self.show_path = False
         self.path_set: Set[Tuple[int, int]] = set()
         self.path_animation_delay = 0.02
+        self.generation_animation_delay = 0.006
         self.ansi_enabled = sys.stdout.isatty()
+        self.render_maze = maze
+        self._did_initial_generation_animation = False
 
     def _paint(self, text: str, color: str) -> str:
         if not self.ansi_enabled:
@@ -59,8 +62,8 @@ class MazeRenderer:
         os.system(command)
 
     def _check_terminal_size(self) -> tuple[bool, str]:
-        required_cols = 4 * self.maze.width + 1
-        required_rows = 2 * self.maze.height + 8
+        required_cols = 4 * self.render_maze.width + 1
+        required_rows = 2 * self.render_maze.height + 8
         size = shutil.get_terminal_size(fallback=(80, 24))
         if size.columns < required_cols or size.lines < required_rows:
             return (
@@ -94,18 +97,60 @@ class MazeRenderer:
             time.sleep(self.path_animation_delay)
 
     def _cell_char(self, x: int, y: int) -> str:
-        cell = self.maze.get_cell(x, y)
+        cell = self.render_maze.get_cell(x, y)
         if cell is None:
             return " "
-        if (x, y) == self.maze.entry:
+        if (x, y) == self.render_maze.entry:
             return self._paint("◉", self.entry_color)
-        if (x, y) == self.maze.exit:
+        if (x, y) == self.render_maze.exit:
             return self._paint("◎", self.exit_color)
         if self.show_path and (x, y) in self.path_set:
             return self._paint("•", self.path_color)
         if cell.is_42:
             return self._paint("▒", self.pattern_color)
         return " "
+
+    def _build_animation_maze(self) -> Maze:
+        """Create a temporary fully-walled maze to replay generation steps."""
+        animation_maze = Maze(
+            self.maze.width,
+            self.maze.height,
+            self.maze.entry,
+            self.maze.exit,
+            self.maze.output_file,
+        )
+
+        for y in range(self.maze.height):
+            for x in range(self.maze.width):
+                final_cell = self.maze.get_cell(x, y)
+                animation_cell = animation_maze.get_cell(x, y)
+                if final_cell is None or animation_cell is None:
+                    continue
+                animation_cell.is_42 = final_cell.is_42
+
+        return animation_maze
+
+    def _animate_generation(self) -> None:
+        """Replay carved openings to visualize maze generation."""
+        self.show_path = False
+        self.path_set = set()
+
+        if not self.ansi_enabled or not self.openings:
+            self.render_maze = self.maze
+            return
+
+        animation_maze = self._build_animation_maze()
+        self.render_maze = animation_maze
+
+        self._draw(render_controls=False)
+        time.sleep(self.generation_animation_delay)
+
+        for (x1, y1), (x2, y2) in self.openings:
+            animation_maze.remove_wall_between_coords(x1, y1, x2, y2)
+            self._draw(render_controls=False)
+            time.sleep(self.generation_animation_delay)
+
+        self.render_maze = self.maze
 
     def _draw_ascii(self) -> str:
         lines: List[str] = []
@@ -114,8 +159,8 @@ class MazeRenderer:
         wall_v = self._paint("║", self.wall_color)
 
         top = []
-        for x in range(self.maze.width):
-            cell = self.maze.get_cell(x, 0)
+        for x in range(self.render_maze.width):
+            cell = self.render_maze.get_cell(x, 0)
             top.append(wall_plus)
             if cell and cell.north:
                 top.append(wall_h)
@@ -124,10 +169,10 @@ class MazeRenderer:
         top.append(wall_plus)
         lines.append("".join(top))
 
-        for y in range(self.maze.height):
+        for y in range(self.render_maze.height):
             middle: List[str] = []
-            for x in range(self.maze.width):
-                cell = self.maze.get_cell(x, y)
+            for x in range(self.render_maze.width):
+                cell = self.render_maze.get_cell(x, y)
                 if cell is None:
                     continue
                 if x == 0:
@@ -137,8 +182,8 @@ class MazeRenderer:
             lines.append("".join(middle))
 
             bottom: List[str] = []
-            for x in range(self.maze.width):
-                cell = self.maze.get_cell(x, y)
+            for x in range(self.render_maze.width):
+                cell = self.render_maze.get_cell(x, y)
                 bottom.append(wall_plus)
                 if cell and cell.south:
                     bottom.append(wall_h)
@@ -197,9 +242,11 @@ class MazeRenderer:
 
     def _on_regenerate(self) -> None:
         self.maze, self.openings = self.regenerate_callback()
+        self.render_maze = self.maze
         # Reset path display for the newly generated maze.
         self.show_path = False
         self.path_set = set()
+        self._animate_generation()
 
     def _toggle_path(self) -> None:
         self.show_path = not self.show_path
@@ -214,6 +261,10 @@ class MazeRenderer:
         self.wall_color = self.wall_palette[self.wall_palette_index]
 
     def run(self) -> None:
+        if not self._did_initial_generation_animation:
+            self._animate_generation()
+            self._did_initial_generation_animation = True
+
         running = True
         while running:
             self._draw(render_controls=True)
