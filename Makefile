@@ -1,4 +1,4 @@
-.PHONY: install run debug build clean lint
+.PHONY: install run debug build package clean lint
 
 .venv/bin/python:
 	python3 -m venv .venv
@@ -17,6 +17,9 @@ debug: .venv/bin/python
 build: .venv/bin/python
 	.venv/bin/python -m pip install --upgrade build
 	.venv/bin/python -m build
+
+package: build
+	cp dist/mazegen-*.tar.gz mazegen.tar.gz
 
 clean:
 	rm -rf __pycache__ */__pycache__ .mypy_cache

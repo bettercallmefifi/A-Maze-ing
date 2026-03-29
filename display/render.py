@@ -212,7 +212,13 @@ class MazeRenderer:
         if not ok:
             print(self._paint(f"ERROR: {message}", self.exit_color))
             print()
-            return
+            print(
+                self._paint(
+                    "Rendering continues with possible wrapping/clipping.",
+                    self.dim_text_color,
+                )
+            )
+            print()
 
         if render_controls:
             print(self._paint("║ r : regenerate maze", self.dim_text_color))

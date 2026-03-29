@@ -1,7 +1,7 @@
 from utils.parsing import ConfigParser
 from mazegen.generator import Generator
 from export.export import ExportMaze
-from mazegen.pattern_42 import mark_42_cells, apply_42_pattern
+from mazegen.pattern_42 import apply_42_pattern
 from mazegen.maze import Maze
 import sys
 import shutil
@@ -24,10 +24,16 @@ def _build_maze(
         algorithm=parsed_data.get("ALGORITHM", "DFS"),
     )
 
-    maze = generator.get_maze()
-    mark_42_cells(maze)
     generator.generate()
-    apply_42_pattern(maze)
+    maze = generator.get_maze()
+
+    if generator.pattern_applied:
+        apply_42_pattern(maze)
+    else:
+        print(
+            "WARNING: 42 pattern cannot fit in this maze size "
+            "(minimum required: 7x5)."
+        )
 
     return maze, generator.get_openings()
 

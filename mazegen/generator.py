@@ -30,6 +30,7 @@ class Generator:
         self.maze = Maze(width, height, entry, exit, output_file)
         self.perfect = perfect
         self.algorithm = algorithm.upper()
+        self.pattern_applied = False
         self.openings: List[Tuple[Tuple[int, int], Tuple[int, int]]] = []
         self.visited: List[List[bool]] = [
             [False for _ in range(width)] for _ in range(height)
@@ -43,12 +44,7 @@ class Generator:
             cell.is_42 = False
             cell.visited = False
 
-        applied = mark_42_cells(self.maze)
-        if not applied:
-            raise ValueError(
-                "42 pattern cannot fit in this maze size "
-                "(minimum required: 7x5)."
-            )
+        self.pattern_applied = mark_42_cells(self.maze)
 
         if self.maze.get_cell(*self.maze.entry) is None:
             raise ValueError("invalid coordinates for start point")
