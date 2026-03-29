@@ -139,6 +139,12 @@ class MazeRenderer:
             self.render_maze = self.maze
             return
 
+        ok, _message = self._check_terminal_size()
+        if not ok:
+            # Skip animation when the viewport cannot fit the maze.
+            self.render_maze = self.maze
+            return
+
         animation_maze = self._build_animation_maze()
         self.render_maze = animation_maze
 
@@ -146,6 +152,10 @@ class MazeRenderer:
         time.sleep(self.generation_animation_delay)
 
         for (x1, y1), (x2, y2) in self.openings:
+            ok, _message = self._check_terminal_size()
+            if not ok:
+                self.render_maze = self.maze
+                return
             animation_maze.remove_wall_between_coords(x1, y1, x2, y2)
             self._draw(render_controls=False)
             time.sleep(self.generation_animation_delay)
@@ -262,7 +272,11 @@ class MazeRenderer:
 
     def run(self) -> None:
         if not self._did_initial_generation_animation:
-            self._animate_generation()
+            ok, _message = self._check_terminal_size()
+            if ok:
+                self._animate_generation()
+            else:
+                self.render_maze = self.maze
             self._did_initial_generation_animation = True
 
         running = True
@@ -285,6 +299,8 @@ class MazeRenderer:
 
             if command in {"q", "quit", "esc", "escape"}:
                 running = False
+            elif not ok:
+                continue
             elif command == "r":
                 self._on_regenerate()
             elif command == "p":
