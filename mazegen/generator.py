@@ -67,6 +67,12 @@ class Generator:
         if not self.perfect:
             self._add_extra_openings()
 
+        if self._has_fully_open_3x3_zone():
+            raise ValueError(
+                "Maze generation produced a fully open 3x3 area, "
+                "which is forbidden."
+            )
+
     def _carve_between(self, cell1: Cell, cell2: Cell) -> None:
         """Open the wall between two adjacent cells and track the opening."""
         self.maze.open_wall_between(cell1, cell2)
@@ -197,6 +203,87 @@ class Generator:
             return cell1.west and cell2.east
         return False
 
+    def _cells_have_open_wall_between(
+        self,
+        cell1: Cell,
+        cell2: Cell,
+    ) -> bool:
+        """Return True when two neighboring cells share an open wall."""
+        return not self._cells_have_closed_wall_between(cell1, cell2)
+
+    def _window_is_fully_open(self, start_x: int, start_y: int) -> bool:
+        """Return True if a 3x3 window has no internal separating wall."""
+        for y in range(start_y, start_y + 3):
+            for x in range(start_x, start_x + 2):
+                left = self.maze.get_cell(x, y)
+                right = self.maze.get_cell(x + 1, y)
+                if left is None or right is None:
+                    return False
+                if not self._cells_have_open_wall_between(left, right):
+                    return False
+
+        for y in range(start_y, start_y + 2):
+            for x in range(start_x, start_x + 3):
+                top = self.maze.get_cell(x, y)
+                bottom = self.maze.get_cell(x, y + 1)
+                if top is None or bottom is None:
+                    return False
+                if not self._cells_have_open_wall_between(top, bottom):
+                    return False
+
+        return True
+
+    def _candidate_window_starts(
+        self,
+        cell1: Cell,
+        cell2: Cell,
+    ) -> List[Tuple[int, int]]:
+        """Return 3x3 window starts that include the two provided cells."""
+        if self.maze.width < 3 or self.maze.height < 3:
+            return []
+
+        min_x = min(cell1.x, cell2.x)
+        max_x = max(cell1.x, cell2.x)
+        min_y = min(cell1.y, cell2.y)
+        max_y = max(cell1.y, cell2.y)
+
+        start_x_min = max(0, max_x - 2)
+        start_x_max = min(self.maze.width - 3, min_x)
+        start_y_min = max(0, max_y - 2)
+        start_y_max = min(self.maze.height - 3, min_y)
+
+        starts: List[Tuple[int, int]] = []
+        for start_y in range(start_y_min, start_y_max + 1):
+            for start_x in range(start_x_min, start_x_max + 1):
+                starts.append((start_x, start_y))
+        return starts
+
+    def _would_create_open_3x3(self, cell1: Cell, cell2: Cell) -> bool:
+        """Check whether opening a wall would create a fully open 3x3 zone."""
+        starts = self._candidate_window_starts(cell1, cell2)
+        if not starts:
+            return False
+
+        self.maze.open_wall_between(cell1, cell2)
+        try:
+            for start_x, start_y in starts:
+                if self._window_is_fully_open(start_x, start_y):
+                    return True
+            return False
+        finally:
+            self.maze.close_wall_between(cell1, cell2)
+
+    def _has_fully_open_3x3_zone(self) -> bool:
+        """Return True if any fully open 3x3 area exists in the maze."""
+        if self.maze.width < 3 or self.maze.height < 3:
+            return False
+
+        for y in range(self.maze.height - 2):
+            for x in range(self.maze.width - 2):
+                if self._window_is_fully_open(x, y):
+                    return True
+        return False
+
     def _add_extra_openings(self) -> None:
         """Add random openings to introduce cycles when PERFECT=False."""
         candidates: List[Tuple[Cell, Cell]] = []
@@ -218,9 +305,15 @@ class Generator:
 
         random.shuffle(candidates)
         extra_count = max(1, len(candidates) // 10)
+        carved = 0
 
-        for cell1, cell2 in candidates[:extra_count]:
+        for cell1, cell2 in candidates:
+            if carved >= extra_count:
+                break
+            if self._would_create_open_3x3(cell1, cell2):
+                continue
             self._carve_between(cell1, cell2)
+            carved += 1
 
     def get_maze(self) -> Maze:
         """Return the current maze instance."""
